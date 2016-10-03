@@ -28,7 +28,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     Page* m_page;
-
+    ContentManager* m_contentMgr;
 };
 
 #endif // MAINWINDOW_H

@@ -4,13 +4,12 @@
 #include "contentmanager.h"
 #include "image.h"
 
-#include <QNetworkAccessManager>
-
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    m_contentMgr = new ContentManager();
 }
 
 MainWindow::~MainWindow()
@@ -31,14 +30,10 @@ void MainWindow::on_pushButton_clicked()
         return;
 
     const QString& pageNum = url.mid(tagStart + LJ_TAG.size(), nextDot - (tagStart + LJ_TAG.size()));
-    QNetworkAccessManager* netManager = new QNetworkAccessManager(this);
+    m_page = m_contentMgr->getPage(".", name, pageNum).data();
+    connect( m_page, SIGNAL(finishedPage(int, bool)), this, SLOT(onRequestFinished(int)) );
 
-    m_page = new Page(*netManager, ".", name, pageNum, this);
-    connect( m_page, SIGNAL(finished(int)), this, SLOT(onRequestFinished(int)) );
-    m_page->load();
-
-    Image* image = new Image(*netManager, name + "/cavatars", "temp.jpeg", "http://l-userpic.livejournal.com/4456799/793195", this);
-    image->load();
+//    Image* image = new Image(*netManager, name + "/cavatars", "temp.jpeg", "http://l-userpic.livejournal.com/4456799/793195", this);
 }
 
 void MainWindow::onRequestFinished(int)

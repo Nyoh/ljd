@@ -89,8 +89,8 @@ bool Page::loadFirstFromStorage()
         info.article = stream.readAll();
     }
 
-    emit finishedPage(m_commentPagesLoaded, !m_commentsFinished);
-    return true;
+    emit finishedPage(m_commentPagesLoaded, false);
+    return m_commentsFinished;
 }
 
 void Page::loadedFromNet()
