@@ -17,12 +17,14 @@ SOURCES += main.cpp\
     netpage.cpp \
     page.cpp \
     image.cpp \
-    contentmanager.cpp
+    contentmanager.cpp \
+    entry.cpp
 
 HEADERS  += mainwindow.h \
     netpage.h \
     page.h \
     image.h \
-    contentmanager.h
+    contentmanager.h \
+    entry.h
 
 FORMS    += mainwindow.ui

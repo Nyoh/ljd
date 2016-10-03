@@ -16,11 +16,8 @@ class Page : public QObject
 {
     Q_OBJECT
 public:
-    struct Info
-    {
-        QString article;
-        QVector<QJsonObject> rawComments;
-    } info;
+    QString article;
+    QVector<QJsonObject> rawComments;
 
     std::atomic<bool> started{false};
     std::atomic<bool> finished{false};

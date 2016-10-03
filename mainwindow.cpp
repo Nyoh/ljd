@@ -38,5 +38,5 @@ void MainWindow::on_pushButton_clicked()
 
 void MainWindow::onRequestFinished(int)
 {
-   ui->plainTextEdit_2->setPlainText(m_page->info.article);
+   ui->plainTextEdit_2->setPlainText(m_page->article);
 }
