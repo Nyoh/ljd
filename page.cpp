@@ -1,28 +1,53 @@
 #include "page.h"
-#include "netpage.h"
+#include "query.h"
+
+#include <random>
+#include <thread>
 
 #include <QtDebug>
 #include <QDir>
 #include <QNetworkAccessManager>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QJsonObject>
+#include <QtNetwork/QNetworkReply.h>
 
 namespace
 {
-    QString articleFileName(const QString& storage)
+    QString articleFileName(const QString& storage, const QString& name, const QString& number)
     {
-        return storage + QDir::separator() + "article.html";
+        return storage + QDir::separator() + name + number + ".html";
     }
 
-    QString url(const QString& name, const QString& number)
+    QString partsFileName(const QString& storage, const QString& name, const QString& number)
+    {
+        return storage + QDir::separator() + name + number + ".json";
+    }
+
+    QString articleUrl(const QString& name, const QString& number)
     {
         return "http://" + name + LJ_TAG + number + ".html";
+    }
+
+    QString commentsUrl(const QString& name, const QString& number)
+    {
+        return "http://" + name + ".livejournal.com/" + name + "/__rpc_get_thread?journal=" + name + "&itemid=" + number + "&flat=&skip=&media=&expand_all=1";
+    }
+
+    void waitABit()
+    {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        static std::uniform_int_distribution<> dis(1000, 2000);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(dis(gen)));
     }
 }
 
 
-Page::Page(QNetworkAccessManager& netManager, const QString& storage, const QString& name, const QString& number, QObject *parent)
-    : QObject(parent)
+
+Page::Page(QNetworkAccessManager& netManager, const QString& storage, const QString& name, const QString& number)
+    : QObject()
     , m_storage(storage)
     , m_name(name)
     , m_number(number)
@@ -30,56 +55,64 @@ Page::Page(QNetworkAccessManager& netManager, const QString& storage, const QStr
 {
 }
 
-void Page::load()
+void Page::query(QNetworkReply *&reply, const QString& url)
 {
-    started = true;
-    if (!loadFirstFromStorage())
+    waitABit();
+    qDebug() << "Downloading " + url;
+    reply = m_netManager.get(QNetworkRequest(QUrl(url)));
+}
+
+void Page::start()
+{
+    if (!loadFromStorage())
     {
-        m_netPage = new NetPage(m_netManager, url(m_name, m_number), m_commentPagesLoaded + 1, this);
-        connect(m_netPage, SIGNAL(done()), this, SLOT(loadedFromNet()));
-        m_netPage->load();
+        query(m_articleReply, articleUrl(m_name, m_number));
+        connect(m_articleReply, SIGNAL(finished()), this, SLOT(articleFromNet()));
+
+        query(m_commentsReply, commentsUrl(m_name, m_number));
+        connect(m_commentsReply, SIGNAL(finished()), this, SLOT(commentsFromNet()));
     }
 }
 
-bool Page::loadFirstFromStorage()
+void Page::signalIfFinished()
 {
-    QDir storageDir(m_storage + QDir::separator() + m_name);
-    qInfo() << "Storage set to " << storageDir.absolutePath();
+    if (commentsDone && articleDone)
+        emit finished();
+}
+
+bool Page::loadFromStorage()
+{
+    QDir storageDir(m_storage);
 
     if (storageDir.mkdir("."))
         return false;
 
     {
-        QFile partsFile(articleFileName(m_storage) + ".json");
+        QFile partsFile(partsFileName(m_storage, m_name, m_number));
         if (!partsFile.open(QIODevice::ReadOnly))
         {
-            qCritical() << "Failed to read the file " + articleFileName(m_storage) + ".json";
+            qCritical() << "Failed to read the file " + partsFileName(m_storage, m_name, m_number);
             return false;
         }
 
         QJsonParseError error;
         QJsonObject root = QJsonDocument::fromJson(partsFile.readAll(), &error).object();
-        QJsonArray commentsArray = root["raw_comments"].toArray();
+        rawComments = root["raw_comments"].toArray();
         if (error.error != QJsonParseError::NoError)
         {
-            qCritical() << "Failed to parse the file " + articleFileName(m_storage) + ".json";
+            qCritical() << "Failed to parse the file " + partsFileName(m_storage, m_name, m_number);
             return false;
         }
 
-        for (int i = 0; i < commentsArray.size(); i++)
-        {
-            QJsonObject commentObject = commentsArray[i].toObject();
-            rawComments.push_back(commentObject);
-        }
-        m_commentPagesLoaded = root["pages_loaded"].toInt(1);
-        m_commentsFinished = root["comments_finished"].toBool(false);
+        prev = root["prev"].toString();
+        next = root["next"].toString();
     }
 
     {
-        QFile articleFile(articleFileName(m_storage));
+        QFile articleFile(articleFileName(m_storage, m_name, m_number));
         if (!articleFile.open(QIODevice::ReadOnly))
         {
-            qCritical() << "Failed to read the file " + articleFileName(m_storage);
+            qCritical() << "Failed to read the file " + articleFileName(m_storage, m_name, m_number);
             return false;
         }
 
@@ -89,58 +122,70 @@ bool Page::loadFirstFromStorage()
         article = stream.readAll();
     }
 
-    emit finishedPage(m_commentPagesLoaded, false);
-    return m_commentsFinished;
+    emit finished();
+    commentsDone = true;
+    articleDone = true;
+    return true;
 }
 
-void Page::loadedFromNet()
+void Page::articleFromNet()
 {
-    if (!m_netPage->errorMessage.isEmpty())
+    m_articleReply->deleteLater();
+    try
     {
-        qWarning() << "Failed to load " + url(m_name, m_number) + ". " + m_netPage->errorMessage;
-        m_netPage->deleteLater();
-        emit finishedPage(m_commentPagesLoaded, true);
+        if(m_articleReply->error() != QNetworkReply::NoError)
+            throw "Failed to download " + articleUrl(m_name, m_number) + ". " + m_articleReply->errorString();
+
+        qDebug() << "Downloaded: " + articleUrl(m_name, m_number);
+        parse(m_articleReply->readAll());
+
+        articleDone = true;
+        save();
+    }
+    catch (const QString& err)
+    {
+        qWarning() << err;
+        //        query(m_articleReply, articleUrl(m_name, m_number));
+        //        connect(m_articleReply, SIGNAL(finished()), this, SLOT(articleFromNet()));
+    }
+}
+
+void Page::commentsFromNet()
+{
+    m_commentsReply->deleteLater();
+    try
+    {
+        if(m_commentsReply->error() != QNetworkReply::NoError)
+            throw "Failed to download " + commentsUrl(m_name, m_number) + ". " + m_commentsReply->errorString();
+
+        qDebug() << "Downloaded: " + commentsUrl(m_name, m_number);
+
+        QJsonDocument pageJson = QJsonDocument::fromBinaryData(m_commentsReply->readAll());
+        rawComments = pageJson.object()["comments"].toArray();
+
+        commentsDone = true;
+        save();
+    }
+    catch (const QString& err)
+    {
+        qWarning() << err;
+        //query(m_commentsReply, commentsUrl(m_name, m_number));
+        //connect(m_commentsReply, SIGNAL(finished()), this, SLOT(commentsFromNet()));
         return;
     }
-    qDebug() << "Page loaded: " + url(m_name, m_number);
 
-    m_commentPagesLoaded++;
-    article = m_netPage->article;
-    QJsonDocument pageJson = QJsonDocument::fromJson(m_netPage->comments.toUtf8());
-    QJsonArray newComments = pageJson.object()["comments"].toArray();
-
-    for (int i = 0; i < newComments.size(); i++)
-    {
-        QJsonObject commentObject = newComments[i].toObject();
-        rawComments.push_back(commentObject);
-    }
-
-    m_commentsFinished = m_netPage->lastCommentPage;
-
-    save();
-    emit finishedPage(m_commentPagesLoaded, false);
-
-    if (!m_netPage->lastCommentPage && !finished)
-    {
-        m_netPage->deleteLater();
-        m_netPage = new NetPage(m_netManager, url(m_name, m_number), m_commentPagesLoaded + 1, this);
-        connect(m_netPage, SIGNAL(done()), this, SLOT(loadedFromNet()));
-        m_netPage->load();
-    }
-    else
-    {
-        finished = true;
-        emit finishedAll();
-    }
 }
 
 void Page::save()
 {
+    if (!commentsDone || !articleDone)
+        return;
+
     {
-        QFile articleFile(articleFileName(m_storage));
+        QFile articleFile(articleFileName(m_storage, m_name, m_number));
         if (!articleFile.open(QIODevice::WriteOnly))
         {
-            qCritical() << "Failed to write to file " + articleFileName(m_storage);
+            qCritical() << "Failed to write to file " + articleFileName(m_storage, m_name, m_number);
             return;
         }
 
@@ -151,10 +196,10 @@ void Page::save()
     }
 
     {
-        QFile partsFile(articleFileName(m_storage) + ".json");
+        QFile partsFile(partsFileName(m_storage, m_name, m_number));
         if (!partsFile.open(QIODevice::WriteOnly))
         {
-            qCritical() << "Failed to write to file " + articleFileName(m_storage) + ".json";
+            qCritical() << "Failed to write to file " + partsFileName(m_storage, m_name, m_number);
             return;
         }
 
@@ -164,10 +209,73 @@ void Page::save()
 
         QJsonObject root;
         root["raw_comments"] = commentsJson;
-        root["pages_loaded"] = m_commentPagesLoaded;
-        root["comments_finished"] = m_commentsFinished;
+        root["prev"] = prev;
+        root["next"] = next;
 
         QJsonDocument saveDoc(root);
         partsFile.write(saveDoc.toJson());
     }
+
+    emit finished();
+}
+
+
+void Page::parsePrev(const QString& page)
+{
+    auto start = page.indexOf("b-singlepost-prevnext-link");
+    start -= 2;
+    while (start > -1 && page[start] != '"')
+        start--;
+
+    if (start < 0)
+        return;
+
+    auto end = start;
+    start--;
+    while (start > -1 && page[start] != '"')
+        start--;
+
+    prev = page.mid(start + 1, end - start - 1);
+}
+
+void Page::parseNext(const QString& page)
+{
+    auto start = page.indexOf("b-singlepost-prevnext-link");
+    if (start == -1)
+        return;
+    start = page.indexOf("b-singlepost-prevnext-link", start + 1);
+
+    start -= 2;
+    while (start > -1 && page[start] != '"')
+        start--;
+
+    if (start < 0)
+        return;
+
+    auto end = start;
+    start--;
+    while (start > -1 && page[start] != '"')
+        start--;
+
+    next = page.mid(start + 1, end - start - 1);
+}
+
+void Page::parse(const QString& page)
+{
+    {
+        const static QString START_TAG("<div class=\"b-singlepost-wrapper\">");
+
+        auto start = page.indexOf(START_TAG);
+        if (start == -1)
+            throw QString("Failed to find article's begining.");
+
+        auto end = page.indexOf("</div>", start);
+        if (end == -1)
+            throw QString("Failed to find article's end.");
+
+        article = page.mid(start + START_TAG.size(), end - (start + START_TAG.size()));
+    }
+
+    parsePrev(page);
+    parseNext(page);
 }

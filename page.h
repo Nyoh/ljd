@@ -3,49 +3,55 @@
 
 #include <atomic>
 
-#include <QJsonObject>
+#include <QJsonArray>
 #include <QObject>
-#include <QVector>
 
 const static QString LJ_TAG = QString(".livejournal.com/");
 
 class QNetworkAccessManager;
-class NetPage;
+class QNetworkReply;
 
 class Page : public QObject
 {
     Q_OBJECT
 public:
     QString article;
-    QVector<QJsonObject> rawComments;
+    QJsonArray rawComments;
+    QString prev;
+    QString next;
 
-    std::atomic<bool> started{false};
-    std::atomic<bool> finished{false};
+    explicit Page(QNetworkAccessManager& netManager, const QString& storage, const QString& name, const QString& number);
+    void start();
 
-    explicit Page(QNetworkAccessManager& netManager, const QString& storage, const QString& name, const QString& number, QObject *parent = 0);
-    void load();
+    std::atomic<bool> commentsDone{false};
+    std::atomic<bool> articleDone{false};
+
+    void signalIfFinished();
 
 signals:
-    void finishedPage(int page, bool halted);
-    void finishedAll();
-
-public slots:
+    void finished();
 
 private slots:
-    void loadedFromNet();
+    void articleFromNet();
+    void commentsFromNet();
 
 private:
-    bool loadFirstFromStorage();
+    bool loadFromStorage();
+    void query(QNetworkReply*& reply, const QString& url);
 
     void save();
 
     const QString m_storage;
     const QString m_name;
     const QString m_number;
-    int m_commentPagesLoaded = 0;
-    bool m_commentsFinished = false;
-    NetPage* m_netPage = nullptr;
+
+    QNetworkReply* m_articleReply = nullptr;
+    QNetworkReply* m_commentsReply = nullptr;
     QNetworkAccessManager& m_netManager;
+
+    void parsePrev(const QString &page);
+    void parseNext(const QString &page);
+    void parse(const QString &page);
 };
 
 #endif // PAGE_H

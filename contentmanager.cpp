@@ -70,7 +70,7 @@ void ContentManager::workTick()
         m_pageLine.pop_front();
         lock.unlock();
 
-        workingPage->load();
+        workingPage->start();
 
         lock.lock();
     }
