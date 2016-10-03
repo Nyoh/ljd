@@ -15,10 +15,12 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     netpage.cpp \
-    page.cpp
+    page.cpp \
+    image.cpp
 
 HEADERS  += mainwindow.h \
     netpage.h \
-    page.h
+    page.h \
+    image.h
 
 FORMS    += mainwindow.ui

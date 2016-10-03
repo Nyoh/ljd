@@ -21,11 +21,12 @@ namespace
 }
 
 
-Page::Page(const QString& storage, const QString& name, const QString& number, QObject *parent)
+Page::Page(QNetworkAccessManager& netManager, const QString& storage, const QString& name, const QString& number, QObject *parent)
     : QObject(parent)
     , m_storage(storage)
     , m_name(name)
     , m_number(number)
+    , m_netManager(netManager)
 {
 }
 
@@ -34,9 +35,9 @@ void Page::load()
     loading = true;
     if (!loadFirstFromStorage())
     {
-        m_netManager = new QNetworkAccessManager(this);
-        m_netPage = new NetPage(*m_netManager, url(m_name, m_number), 1, this);
+        m_netPage = new NetPage(m_netManager, url(m_name, m_number), 1, this);
         connect(m_netPage, SIGNAL(done()), this, SLOT(loadedFromNet()));
+        m_netPage->load();
     }
 }
 
@@ -102,9 +103,10 @@ void Page::loadedFromNet()
     if (!m_netPage->errorMessage.isEmpty())
     {
         qWarning() << "Failed to load " + url(m_name, m_number) + ". " + m_netPage->errorMessage;
-        //delete m_netPage;
+        m_netPage->deleteLater();
         //m_netPage = new NetPage(*m_netManager, url(m_name, m_number), 1, this);
-        connect(m_netPage, SIGNAL(done()), this, SLOT(loadedFromNet()));
+        //connect(m_netPage, SIGNAL(done()), this, SLOT(loadedFromNet()));
+        //m_netPage->load();
         return;
     }
     qDebug() << "Page loaded: " + url(m_name, m_number);
@@ -127,9 +129,10 @@ void Page::loadedFromNet()
 
     if (!m_netPage->lastCommentPage && loading)
     {
-        //delete m_netPage;
-        m_netPage = new NetPage(*m_netManager, url(m_name, m_number), m_commentPagesLoaded + 1, this);
+        m_netPage->deleteLater();
+        m_netPage = new NetPage(m_netManager, url(m_name, m_number), m_commentPagesLoaded + 1, this);
         connect(m_netPage, SIGNAL(done()), this, SLOT(loadedFromNet()));
+        m_netPage->load();
     }
     else
         postProcess();

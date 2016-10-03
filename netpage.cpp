@@ -1,15 +1,38 @@
 #include "netpage.h"
 
+#include <random>
+#include <thread>
+
 #include <QtDebug>
 #include <QtNetwork/QNetworkReply.h>
 
+namespace
+{
+    void waitABit()
+    {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        static std::uniform_int_distribution<> dis(1000, 2000);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(dis(gen)));
+    }
+}
+
+
 NetPage::NetPage(QNetworkAccessManager &manager, const QString &url, int commentNum, QObject *parent)
     : QObject(parent)
+    , m_netManager(manager)
     , m_commentNum(commentNum)
+    , m_url(url)
 {
-    const QString& fullTag = url + "?page=" + std::to_string(m_commentNum).c_str() + "&view=flat";
+}
+
+void NetPage::load()
+{
+    const QString& fullTag = m_url + "?page=" + std::to_string(m_commentNum).c_str() + "&view=flat";
     qDebug() << "Downloading page " + fullTag;
-    m_reply = manager.get(QNetworkRequest(QUrl(fullTag)));
+    waitABit();
+    m_reply = m_netManager.get(QNetworkRequest(QUrl(fullTag)));
     connect(m_reply, SIGNAL(finished()), this, SLOT(finished()));
 }
 

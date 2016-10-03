@@ -24,7 +24,7 @@ public:
 
     std::atomic<bool> loading{false};
 
-    explicit Page(const QString& storage, const QString& name, const QString& number, QObject *parent = 0);
+    explicit Page(QNetworkAccessManager& netManager, const QString& storage, const QString& name, const QString& number, QObject *parent = 0);
     void load();
 
 signals:
@@ -47,7 +47,7 @@ private:
     int m_commentPagesLoaded = 0;
     bool m_commentsFinished = false;
     NetPage* m_netPage = nullptr;
-    QNetworkAccessManager* m_netManager = nullptr;
+    QNetworkAccessManager& m_netManager;
 };
 
 #endif // PAGE_H
