@@ -10,7 +10,7 @@ class NetPage : public QObject
 {
     Q_OBJECT
 public:
-    explicit NetPage(QNetworkAccessManager& manager, const QString& url, int commentNum = 1, QObject *parent = 0);
+    explicit NetPage(QNetworkAccessManager& manager, const QString& url, int m_commentNum = 1, QObject *parent = 0);
 
     QString errorMessage;
 
@@ -22,8 +22,6 @@ public:
 
     bool lastCommentPage = false;
 
-    const int commentNum;
-
 signals:
     void done();
 
@@ -33,6 +31,7 @@ private slots:
     void finished();
 
 private:
+    const int m_commentNum;
     QNetworkReply* m_reply;
 
     void Parse(const QString& page);

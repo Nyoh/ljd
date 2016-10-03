@@ -1,6 +1,8 @@
 #ifndef PAGE_H
 #define PAGE_H
 
+#include <atomic>
+
 #include <QJsonObject>
 #include <QObject>
 #include <QVector>
@@ -20,6 +22,8 @@ public:
         QVector<QJsonObject> rawComments;
     } info;
 
+    std::atomic<bool> loading{false};
+
     explicit Page(const QString& storage, const QString& name, const QString& number, QObject *parent = 0);
     void load();
 
@@ -33,6 +37,7 @@ private slots:
 
 private:
     bool loadFirstFromStorage();
+    void postProcess();
 
     void save();
 
@@ -40,6 +45,7 @@ private:
     const QString m_name;
     const QString m_number;
     int m_commentPagesLoaded = 0;
+    bool m_commentsFinished = false;
     NetPage* m_netPage = nullptr;
     QNetworkAccessManager* m_netManager = nullptr;
 };

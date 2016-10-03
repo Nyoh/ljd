@@ -31,6 +31,7 @@ Page::Page(const QString& storage, const QString& name, const QString& number, Q
 
 void Page::load()
 {
+    loading = true;
     if (!loadFirstFromStorage())
     {
         m_netManager = new QNetworkAccessManager(this);
@@ -70,6 +71,7 @@ bool Page::loadFirstFromStorage()
             info.rawComments.push_back(commentObject);
         }
         m_commentPagesLoaded = root["pages_loaded"].toInt(1);
+        m_commentsFinished = root["comments_finished"].toBool(false);
     }
 
     {
@@ -88,6 +90,11 @@ bool Page::loadFirstFromStorage()
 
     emit finished(m_commentPagesLoaded);
     return true;
+}
+
+void Page::postProcess()
+{
+
 }
 
 void Page::loadedFromNet()
@@ -113,15 +120,19 @@ void Page::loadedFromNet()
         info.rawComments.push_back(commentObject);
     }
 
+    m_commentsFinished = m_netPage->lastCommentPage;
+
     save();
     emit finished(m_commentPagesLoaded);
 
-    if (!m_netPage->lastCommentPage)
+    if (!m_netPage->lastCommentPage && loading)
     {
         //delete m_netPage;
         m_netPage = new NetPage(*m_netManager, url(m_name, m_number), m_commentPagesLoaded + 1, this);
         connect(m_netPage, SIGNAL(done()), this, SLOT(loadedFromNet()));
     }
+    else
+        postProcess();
 }
 
 void Page::save()
@@ -155,6 +166,7 @@ void Page::save()
         QJsonObject root;
         root["raw_comments"] = commentsJson;
         root["pages_loaded"] = m_commentPagesLoaded;
+        root["comments_finished"] = m_commentsFinished;
 
         QJsonDocument saveDoc(root);
         partsFile.write(saveDoc.toJson());
