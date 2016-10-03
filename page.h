@@ -1,7 +1,9 @@
 #ifndef PAGE_H
 #define PAGE_H
 
+#include <QJsonObject>
 #include <QObject>
+#include <QVector>
 
 const static QString LJ_TAG = QString(".livejournal.com/");
 
@@ -15,9 +17,11 @@ public:
     struct Info
     {
         QString article;
+        QVector<QJsonObject> rawComments;
     } info;
 
     explicit Page(const QString& storage, const QString& name, const QString& number, QObject *parent = 0);
+    void load();
 
 signals:
     void finished(int page);
@@ -30,7 +34,6 @@ private slots:
 
 private:
     bool loadFirstFromStorage();
-    void loadFirstFromNet();
 
     void save();
 

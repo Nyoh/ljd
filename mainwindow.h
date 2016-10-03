@@ -18,7 +18,7 @@ public:
     ~MainWindow();
 
 public slots:
-    void onRequestFinished();
+    void onRequestFinished(int);
 
 private slots:
     void on_pushButton_clicked();

@@ -4,6 +4,8 @@
 #include <QtDebug>
 #include <QDir>
 #include <QNetworkAccessManager>
+#include <QJsonArray>
+#include <QJsonDocument>
 
 namespace
 {
@@ -25,10 +27,15 @@ Page::Page(const QString& storage, const QString& name, const QString& number, Q
     , m_name(name)
     , m_number(number)
 {
+}
+
+void Page::load()
+{
     if (!loadFirstFromStorage())
     {
         m_netManager = new QNetworkAccessManager(this);
-        loadFirstFromNet();
+        m_netPage = new NetPage(*m_netManager, url(m_name, m_number), 1, this);
+        connect(m_netPage, SIGNAL(done()), this, SLOT(firstFromNetLoaded()));
     }
 }
 
@@ -42,18 +49,48 @@ bool Page::loadFirstFromStorage()
     QDir storageDir(m_storage + QDir::separator() + m_name);
     qInfo() << "Storage set to " << storageDir.absolutePath();
 
-    QFile articleFile(articleFileName(m_name, m_number));
-
-    if (storageDir.mkdir(".") || !articleFile.exists())
+    if (storageDir.mkdir("."))
         return false;
 
-    return false;
-}
+    {
+        QFile partsFile(articleFileName(m_name, m_number) + ".json");
+        if (!partsFile.open(QIODevice::ReadOnly))
+        {
+            qCritical() << "Failed to read the file " + articleFileName(m_name, m_number) + ".json";
+            return false;
+        }
 
-void Page::loadFirstFromNet()
-{
-    m_netPage = new NetPage(*m_netManager, url(m_name, m_number), 1, this);
-    connect(m_netPage, SIGNAL(done()), this, SLOT(firstFromNetLoaded()));
+        QJsonParseError error;
+        QJsonArray commentsArray = QJsonDocument::fromJson(partsFile.readAll(), &error).object()["raw_comments"].toArray();
+        if (error.error != QJsonParseError::NoError)
+        {
+            qCritical() << "Failed to parse the file " + articleFileName(m_name, m_number) + ".json";
+            return false;
+        }
+
+        for (int i = 0; i < commentsArray.size(); i++)
+        {
+            QJsonObject commentObject = commentsArray[i].toObject();
+            info.rawComments.push_back(commentObject);
+        }
+    }
+
+    {
+        QFile articleFile(articleFileName(m_name, m_number));
+        if (!articleFile.open(QIODevice::ReadOnly))
+        {
+            qCritical() << "Failed to read the file " + articleFileName(m_name, m_number);
+            return false;
+        }
+
+        QTextStream stream(&articleFile);
+        stream.setGenerateByteOrderMark(true);
+        stream.setCodec("UTF-8");
+        info.article = stream.readAll();
+    }
+
+    emit finished(1);
+    return true;
 }
 
 void Page::firstFromNetLoaded()
@@ -68,6 +105,14 @@ void Page::firstFromNetLoaded()
     }
 
     info.article = m_netPage->article;
+    QJsonDocument pageJson = QJsonDocument::fromJson(m_netPage->comments.toUtf8());
+    QJsonArray newComments = pageJson.object()["comments"].toArray();
+
+    for (int i = 0; i < newComments.size(); i++)
+    {
+        QJsonObject commentObject = newComments[i].toObject();
+        info.rawComments.push_back(commentObject);
+    }
 
     save();
     emit finished(1);
@@ -75,15 +120,36 @@ void Page::firstFromNetLoaded()
 
 void Page::save()
 {
-    QFile articleFile(articleFileName(m_name, m_number));
-    if (!articleFile.open(QIODevice::WriteOnly))
     {
-        qCritical() << "Failed to write to file " + articleFileName(m_name, m_number);
-        return;
+        QFile articleFile(articleFileName(m_name, m_number));
+        if (!articleFile.open(QIODevice::WriteOnly))
+        {
+            qCritical() << "Failed to write to file " + articleFileName(m_name, m_number);
+            return;
+        }
+
+        QTextStream stream(&articleFile);
+        stream.setGenerateByteOrderMark(true);
+        stream.setCodec("UTF-8");
+        stream << info.article.toUtf8();
     }
 
-    QTextStream stream(&articleFile);
-    stream.setGenerateByteOrderMark(true);
-    stream.setCodec("UTF-8");
-    stream << info.article.toUtf8();
+    {
+        QFile partsFile(articleFileName(m_name, m_number) + ".json");
+        if (!partsFile.open(QIODevice::WriteOnly))
+        {
+            qCritical() << "Failed to write to file " + articleFileName(m_name, m_number) + ".json";
+            return;
+        }
+
+        QJsonArray commentsJson;
+        for (const auto& comment : info.rawComments)
+            commentsJson.append(comment);
+
+        QJsonObject root;
+        root["raw_comment"] = commentsJson;
+
+        QJsonDocument saveDoc(root);
+        partsFile.write(saveDoc.toJson());
+    }
 }

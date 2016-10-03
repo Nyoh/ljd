@@ -30,10 +30,11 @@ void MainWindow::on_pushButton_clicked()
     const QString& pageNum = url.mid(tagStart + LJ_TAG.size(), nextDot - (tagStart + LJ_TAG.size()));
 
     m_page = new Page(".", name, pageNum, this);
-    connect( m_page, SIGNAL(finished(int)), this, SLOT(onRequestFinished()) );
+    connect( m_page, SIGNAL(finished(int)), this, SLOT(onRequestFinished(int)) );
+    m_page->load();
 }
 
-void MainWindow::onRequestFinished()
+void MainWindow::onRequestFinished(int)
 {
    ui->plainTextEdit_2->setPlainText(m_page->info.article);
 }
