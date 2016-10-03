@@ -26,10 +26,13 @@ public slots:
 
 private slots:
     void netPageLoaded();
+    void firstFromNetLoaded();
 
 private:
     bool loadFirstFromStorage();
     void loadFirstFromNet();
+
+    void save();
 
     const QString m_storage;
     const QString m_name;

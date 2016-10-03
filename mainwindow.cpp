@@ -27,17 +27,13 @@ void MainWindow::on_pushButton_clicked()
     if (nextDot == -1)
         return;
 
-    const QString& pageNum = url.mid(tagStart + LJ_TAG.size(), nextDot);
+    const QString& pageNum = url.mid(tagStart + LJ_TAG.size(), nextDot - (tagStart + LJ_TAG.size()));
 
-    QNetworkAccessManager* manager = new QNetworkAccessManager(this);
-    m_page = new NetPage(*manager, url);
-    connect( m_page, SIGNAL(done()), this, SLOT(onRequestFinished()) );
+    m_page = new Page(".", name, pageNum, this);
+    connect( m_page, SIGNAL(finished(int)), this, SLOT(onRequestFinished()) );
 }
 
 void MainWindow::onRequestFinished()
 {
-    if( m_page->errorMessage.isEmpty())
-    {
-        ui->plainTextEdit_2->setPlainText(m_page->comments);
-    }
+   ui->plainTextEdit_2->setPlainText(m_page->info.article);
 }
