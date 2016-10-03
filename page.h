@@ -15,6 +15,10 @@ public:
     QString errorMessage;
 
     QString article;
+    QString comments;
+
+    QString prev;
+    QString next;
 
 signals:
     void done();
@@ -28,6 +32,8 @@ private:
     void Parse(const QString& page);
 
     QNetworkReply* m_reply;
+    void ParsePrev(const QString& page);
+    void ParseNext(const QString& page);
 };
 
 #endif // PAGE_H

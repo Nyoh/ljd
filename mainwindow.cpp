@@ -27,6 +27,6 @@ void MainWindow::onRequestFinished()
 {
     if( m_page->errorMessage.isEmpty())
     {
-        ui->plainTextEdit_2->setPlainText(m_page->article);
+        ui->plainTextEdit_2->setPlainText(m_page->comments);
     }
 }
