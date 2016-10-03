@@ -32,10 +32,10 @@ Page::Page(QNetworkAccessManager& netManager, const QString& storage, const QStr
 
 void Page::load()
 {
-    loading = true;
+    started = true;
     if (!loadFirstFromStorage())
     {
-        m_netPage = new NetPage(m_netManager, url(m_name, m_number), 1, this);
+        m_netPage = new NetPage(m_netManager, url(m_name, m_number), m_commentPagesLoaded + 1, this);
         connect(m_netPage, SIGNAL(done()), this, SLOT(loadedFromNet()));
         m_netPage->load();
     }
@@ -89,13 +89,8 @@ bool Page::loadFirstFromStorage()
         info.article = stream.readAll();
     }
 
-    emit finished(m_commentPagesLoaded);
+    emit finishedPage(m_commentPagesLoaded, !m_commentsFinished);
     return true;
-}
-
-void Page::postProcess()
-{
-
 }
 
 void Page::loadedFromNet()
@@ -104,9 +99,7 @@ void Page::loadedFromNet()
     {
         qWarning() << "Failed to load " + url(m_name, m_number) + ". " + m_netPage->errorMessage;
         m_netPage->deleteLater();
-        //m_netPage = new NetPage(*m_netManager, url(m_name, m_number), 1, this);
-        //connect(m_netPage, SIGNAL(done()), this, SLOT(loadedFromNet()));
-        //m_netPage->load();
+        emit finishedPage(m_commentPagesLoaded, true);
         return;
     }
     qDebug() << "Page loaded: " + url(m_name, m_number);
@@ -125,9 +118,9 @@ void Page::loadedFromNet()
     m_commentsFinished = m_netPage->lastCommentPage;
 
     save();
-    emit finished(m_commentPagesLoaded);
+    emit finishedPage(m_commentPagesLoaded, false);
 
-    if (!m_netPage->lastCommentPage && loading)
+    if (!m_netPage->lastCommentPage && finished)
     {
         m_netPage->deleteLater();
         m_netPage = new NetPage(m_netManager, url(m_name, m_number), m_commentPagesLoaded + 1, this);
@@ -135,7 +128,10 @@ void Page::loadedFromNet()
         m_netPage->load();
     }
     else
-        postProcess();
+    {
+        finished = true;
+        emit finishedAll();
+    }
 }
 
 void Page::save()

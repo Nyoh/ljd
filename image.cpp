@@ -32,8 +32,11 @@ Image::Image(QNetworkAccessManager &netManager, const QString &storage, const QS
 
 void Image::load()
 {
+    started = true;
+
     if (saved())
     {
+        finished = true;
         emit done();
         return;
     }
@@ -41,10 +44,10 @@ void Image::load()
     qDebug() << "Downloading image " + m_url;
     waitABit();
     m_reply = m_netManager.get(QNetworkRequest(QUrl(m_url)));
-    connect(m_reply, SIGNAL(finished()), this, SLOT(finished()));
+    connect(m_reply, SIGNAL(finished()), this, SLOT(finishedDownload()));
 }
 
-void Image::finished()
+void Image::finishedDownload()
 {
     m_reply->deleteLater();
     if(m_reply->error() != QNetworkReply::NoError)
@@ -68,6 +71,7 @@ void Image::finished()
     localFile.write(m_reply->readAll());
     localFile.close();
 
+    finished = true;
     emit done();
 }
 

@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "contentmanager.h"
 #include "image.h"
 
 #include <QNetworkAccessManager>

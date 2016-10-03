@@ -22,13 +22,15 @@ public:
         QVector<QJsonObject> rawComments;
     } info;
 
-    std::atomic<bool> loading{false};
+    std::atomic<bool> started{false};
+    std::atomic<bool> finished{false};
 
     explicit Page(QNetworkAccessManager& netManager, const QString& storage, const QString& name, const QString& number, QObject *parent = 0);
     void load();
 
 signals:
-    void finished(int page);
+    void finishedPage(int page, bool halted);
+    void finishedAll();
 
 public slots:
 
@@ -37,7 +39,6 @@ private slots:
 
 private:
     bool loadFirstFromStorage();
-    void postProcess();
 
     void save();
 

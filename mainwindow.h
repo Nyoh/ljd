@@ -5,6 +5,8 @@
 
 #include "page.h"
 
+class ContentManager;
+
 namespace Ui {
     class MainWindow;
 }
@@ -26,7 +28,6 @@ private slots:
 private:
     Ui::MainWindow *ui;
     Page* m_page;
-
 
 };
 

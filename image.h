@@ -1,6 +1,8 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
+#include <atomic>
+
 #include <QObject>
 
 class QNetworkAccessManager;
@@ -19,7 +21,7 @@ signals:
 public slots:
 
 private slots:
-    void finished();
+    void finishedDownload();
 
 private:
     bool saved();
@@ -33,6 +35,9 @@ public:
     const QString m_storage;
     const QString m_filename;
     const QString m_url;
+
+    std::atomic<bool> started{false};
+    std::atomic<bool> finished{false};
 };
 
 #endif // IMAGE_H
