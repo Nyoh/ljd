@@ -17,8 +17,19 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_clicked()
 {
-    QNetworkAccessManager* manager = new QNetworkAccessManager(this);
     QString url = ui->plainTextEdit->toPlainText();
+    const auto tagStart = url.indexOf(LJ_TAG);
+    if (tagStart == -1)
+        return;
+
+    const QString& name = url.mid(0, tagStart);
+    const auto nextDot = url.indexOf('.', tagStart + LJ_TAG.size());
+    if (nextDot == -1)
+        return;
+
+    const QString& pageNum = url.mid(tagStart + LJ_TAG.size(), nextDot);
+
+    QNetworkAccessManager* manager = new QNetworkAccessManager(this);
     m_page = new NetPage(*manager, url);
     connect( m_page, SIGNAL(done()), this, SLOT(onRequestFinished()) );
 }

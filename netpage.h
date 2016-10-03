@@ -1,5 +1,5 @@
-#ifndef PAGE_H
-#define PAGE_H
+#ifndef NETPAGE_H
+#define NETPAGE_H
 
 #include <QObject>
 
@@ -39,4 +39,4 @@ private:
     void ParseNext(const QString& page);
 };
 
-#endif // PAGE_H
+#endif // NETPAGE_H
