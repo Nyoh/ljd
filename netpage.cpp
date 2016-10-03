@@ -1,8 +1,8 @@
-#include "page.h"
+#include "netpage.h"
 
 #include <QtNetwork/QNetworkReply.h>
 
-Page::Page(QNetworkAccessManager &manager, const QString &url, int commentNum, QObject *parent)
+NetPage::NetPage(QNetworkAccessManager &manager, const QString &url, int commentNum, QObject *parent)
     : QObject(parent)
     , m_commentNum(commentNum)
 {
@@ -11,7 +11,7 @@ Page::Page(QNetworkAccessManager &manager, const QString &url, int commentNum, Q
     connect(m_reply, SIGNAL(finished()), this, SLOT(finished()));
 }
 
-void Page::finished()
+void NetPage::finished()
 {
     m_reply->deleteLater();
     if(m_reply->error() != QNetworkReply::NoError)
@@ -33,7 +33,7 @@ void Page::finished()
     emit done();
 }
 
-void Page::ParsePrev(const QString& page)
+void NetPage::ParsePrev(const QString& page)
 {
     auto start = page.indexOf("b-singlepost-prevnext-link");
     start -= 2;
@@ -51,7 +51,7 @@ void Page::ParsePrev(const QString& page)
     prev = page.mid(start + 1, end - start - 1);
 }
 
-void Page::ParseNext(const QString& page)
+void NetPage::ParseNext(const QString& page)
 {
     auto start = page.indexOf("b-singlepost-prevnext-link");
     if (start == -1)
@@ -73,7 +73,7 @@ void Page::ParseNext(const QString& page)
     next = page.mid(start + 1, end - start - 1);
 }
 
-void Page::Parse(const QString& page)
+void NetPage::Parse(const QString& page)
 {
     {
         const static QString START_TAG("<div class=\"b-singlepost-wrapper\">");

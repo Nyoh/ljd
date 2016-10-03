@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 
-#include "page.h"
+#include "netpage.h"
 
 namespace Ui {
     class MainWindow;
@@ -25,7 +25,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    Page* m_page;
+    NetPage* m_page;
 
 
 };

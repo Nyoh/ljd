@@ -19,7 +19,7 @@ void MainWindow::on_pushButton_clicked()
 {
     QNetworkAccessManager* manager = new QNetworkAccessManager(this);
     QString url = ui->plainTextEdit->toPlainText();
-    m_page = new Page(*manager, url);
+    m_page = new NetPage(*manager, url);
     connect( m_page, SIGNAL(done()), this, SLOT(onRequestFinished()) );
 }
 

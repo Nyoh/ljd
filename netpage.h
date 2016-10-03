@@ -6,11 +6,11 @@
 class QNetworkAccessManager;
 class QNetworkReply;
 
-class Page : public QObject
+class NetPage : public QObject
 {
     Q_OBJECT
 public:
-    explicit Page(QNetworkAccessManager& manager, const QString& url, int commentNum = 1, QObject *parent = 0);
+    explicit NetPage(QNetworkAccessManager& manager, const QString& url, int commentNum = 1, QObject *parent = 0);
 
     QString errorMessage;
 
