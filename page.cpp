@@ -35,13 +35,8 @@ void Page::load()
     {
         m_netManager = new QNetworkAccessManager(this);
         m_netPage = new NetPage(*m_netManager, url(m_name, m_number), 1, this);
-        connect(m_netPage, SIGNAL(done()), this, SLOT(firstFromNetLoaded()));
+        connect(m_netPage, SIGNAL(done()), this, SLOT(loadedFromNet()));
     }
-}
-
-void Page::netPageLoaded()
-{
-
 }
 
 bool Page::loadFirstFromStorage()
@@ -61,7 +56,8 @@ bool Page::loadFirstFromStorage()
         }
 
         QJsonParseError error;
-        QJsonArray commentsArray = QJsonDocument::fromJson(partsFile.readAll(), &error).object()["raw_comments"].toArray();
+        QJsonObject root = QJsonDocument::fromJson(partsFile.readAll(), &error).object();
+        QJsonArray commentsArray = root["raw_comments"].toArray();
         if (error.error != QJsonParseError::NoError)
         {
             qCritical() << "Failed to parse the file " + articleFileName(m_name, m_number) + ".json";
@@ -73,6 +69,7 @@ bool Page::loadFirstFromStorage()
             QJsonObject commentObject = commentsArray[i].toObject();
             info.rawComments.push_back(commentObject);
         }
+        m_commentPagesLoaded = root["pages_loaded"].toInt(1);
     }
 
     {
@@ -89,21 +86,23 @@ bool Page::loadFirstFromStorage()
         info.article = stream.readAll();
     }
 
-    emit finished(1);
+    emit finished(m_commentPagesLoaded);
     return true;
 }
 
-void Page::firstFromNetLoaded()
+void Page::loadedFromNet()
 {
     if (!m_netPage->errorMessage.isEmpty())
     {
         qWarning() << "Failed to load " + url(m_name, m_number) + ". " + m_netPage->errorMessage;
         //delete m_netPage;
         //m_netPage = new NetPage(*m_netManager, url(m_name, m_number), 1, this);
-        connect(m_netPage, SIGNAL(done()), this, SLOT(firstFromNetLoaded()));
+        connect(m_netPage, SIGNAL(done()), this, SLOT(loadedFromNet()));
         return;
     }
+    qDebug() << "Page loaded: " + url(m_name, m_number);
 
+    m_commentPagesLoaded++;
     info.article = m_netPage->article;
     QJsonDocument pageJson = QJsonDocument::fromJson(m_netPage->comments.toUtf8());
     QJsonArray newComments = pageJson.object()["comments"].toArray();
@@ -115,7 +114,14 @@ void Page::firstFromNetLoaded()
     }
 
     save();
-    emit finished(1);
+    emit finished(m_commentPagesLoaded);
+
+    if (!m_netPage->lastCommentPage)
+    {
+        //delete m_netPage;
+        m_netPage = new NetPage(*m_netManager, url(m_name, m_number), m_commentPagesLoaded + 1, this);
+        connect(m_netPage, SIGNAL(done()), this, SLOT(loadedFromNet()));
+    }
 }
 
 void Page::save()
@@ -147,7 +153,8 @@ void Page::save()
             commentsJson.append(comment);
 
         QJsonObject root;
-        root["raw_comment"] = commentsJson;
+        root["raw_comments"] = commentsJson;
+        root["pages_loaded"] = m_commentPagesLoaded;
 
         QJsonDocument saveDoc(root);
         partsFile.write(saveDoc.toJson());

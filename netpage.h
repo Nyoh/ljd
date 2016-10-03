@@ -22,6 +22,8 @@ public:
 
     bool lastCommentPage = false;
 
+    const int commentNum;
+
 signals:
     void done();
 
@@ -32,7 +34,6 @@ private slots:
 
 private:
     QNetworkReply* m_reply;
-    int m_commentNum;
 
     void Parse(const QString& page);
     void ParsePrev(const QString& page);

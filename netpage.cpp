@@ -1,12 +1,14 @@
 #include "netpage.h"
 
+#include <QtDebug>
 #include <QtNetwork/QNetworkReply.h>
 
-NetPage::NetPage(QNetworkAccessManager &manager, const QString &url, int commentNum, QObject *parent)
+NetPage::NetPage(QNetworkAccessManager &manager, const QString &url, int commentNumVal, QObject *parent)
     : QObject(parent)
-    , m_commentNum(commentNum)
+    , commentNum(commentNumVal)
 {
     const QString& fullTag = url + "?page=" + std::to_string(commentNum).c_str() + "&view=flat";
+    qDebug() << "Downloading page " + fullTag;
     m_reply = manager.get(QNetworkRequest(QUrl(fullTag)));
     connect(m_reply, SIGNAL(finished()), this, SLOT(finished()));
 }
@@ -110,6 +112,6 @@ void NetPage::Parse(const QString& page)
     ParsePrev(page);
     ParseNext(page);
 
-    const auto lastCommentPageTag = QString("?page=") + std::to_string(m_commentNum + 1).c_str() + "&view=flat";
+    const auto lastCommentPageTag = QString("?page=") + std::to_string(commentNum + 1).c_str() + "&view=flat";
     lastCommentPage = (-1 == page.indexOf(lastCommentPageTag));
 }

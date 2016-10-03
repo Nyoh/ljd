@@ -29,8 +29,7 @@ signals:
 public slots:
 
 private slots:
-    void netPageLoaded();
-    void firstFromNetLoaded();
+    void loadedFromNet();
 
 private:
     bool loadFirstFromStorage();
@@ -40,6 +39,7 @@ private:
     const QString m_storage;
     const QString m_name;
     const QString m_number;
+    int m_commentPagesLoaded = 0;
     NetPage* m_netPage = nullptr;
     QNetworkAccessManager* m_netManager = nullptr;
 };
