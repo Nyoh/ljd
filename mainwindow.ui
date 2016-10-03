@@ -20,18 +20,18 @@
       <x>10</x>
       <y>10</y>
       <width>201</width>
-      <height>21</height>
+      <height>61</height>
      </rect>
     </property>
     <property name="plainText">
-     <string>https://google.com</string>
+     <string>http://galkovsky.livejournal.com/248999.html?view=flat</string>
     </property>
    </widget>
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>40</y>
+      <y>120</y>
       <width>80</width>
       <height>21</height>
      </rect>
@@ -40,12 +40,12 @@
      <string>PushButton</string>
     </property>
    </widget>
-   <widget class="QTextEdit" name="textEdit">
+   <widget class="QPlainTextEdit" name="plainTextEdit_2">
     <property name="geometry">
      <rect>
       <x>220</x>
       <y>10</y>
-      <width>571</width>
+      <width>591</width>
       <height>431</height>
      </rect>
     </property>
