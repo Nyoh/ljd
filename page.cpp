@@ -2,9 +2,12 @@
 
 #include <QtNetwork/QNetworkReply.h>
 
-Page::Page(QNetworkAccessManager &manager, const QString &url, QObject *parent) : QObject(parent)
+Page::Page(QNetworkAccessManager &manager, const QString &url, int commentNum, QObject *parent)
+    : QObject(parent)
+    , m_commentNum(commentNum)
 {
-    m_reply = manager.get(QNetworkRequest(QUrl(url)));
+    const QString& fullTag = url + "?page=" + std::to_string(commentNum).c_str() + "&view=flat";
+    m_reply = manager.get(QNetworkRequest(QUrl(fullTag)));
     connect(m_reply, SIGNAL(finished()), this, SLOT(finished()));
 }
 
@@ -106,4 +109,7 @@ void Page::Parse(const QString& page)
 
     ParsePrev(page);
     ParseNext(page);
+
+    const auto lastCommentPageTag = QString("?page=") + std::to_string(m_commentNum + 1).c_str() + "&view=flat";
+    lastCommentPage = (-1 == page.indexOf(lastCommentPageTag));
 }

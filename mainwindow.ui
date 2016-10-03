@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="plainText">
-     <string>http://galkovsky.livejournal.com/248999.html?view=flat</string>
+     <string>http://galkovsky.livejournal.com/248999.html</string>
     </property>
    </widget>
    <widget class="QPushButton" name="pushButton">

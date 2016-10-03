@@ -10,7 +10,7 @@ class Page : public QObject
 {
     Q_OBJECT
 public:
-    explicit Page(QNetworkAccessManager& manager, const QString& url, QObject *parent = 0);
+    explicit Page(QNetworkAccessManager& manager, const QString& url, int commentNum = 1, QObject *parent = 0);
 
     QString errorMessage;
 
@@ -19,6 +19,8 @@ public:
 
     QString prev;
     QString next;
+
+    bool lastCommentPage = false;
 
 signals:
     void done();
@@ -29,9 +31,10 @@ private slots:
     void finished();
 
 private:
-    void Parse(const QString& page);
-
     QNetworkReply* m_reply;
+    int m_commentNum;
+
+    void Parse(const QString& page);
     void ParsePrev(const QString& page);
     void ParseNext(const QString& page);
 };
