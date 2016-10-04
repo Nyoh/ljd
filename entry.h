@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QSharedPointer>
 #include <QQueue>
+#include <QTextDocument>
 
 class Downloader;
 class Page;
@@ -21,6 +22,8 @@ public:
         QString text;
         QString date;
         QString avatar;
+        QString subject;
+        QString userpic;
         QString id;
         QString parent;
 
@@ -33,6 +36,7 @@ public:
         const QString name;
         const QString number;
 
+        QTextDocument article;
         QQueue<Comment> comments;
     } info;
 

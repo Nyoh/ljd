@@ -4,6 +4,7 @@
 #include <QJsonObject>
 #include <QQueue>
 #include <QVector>
+#include <QCryptographicHash>
 
 #include "downloader.h"
 
@@ -36,8 +37,21 @@ void Entry::buildTree()
         comment.name = rawComment["dname"].toString();
         comment.date = rawComment["ctime"].toString();
         comment.text = rawComment["article"].toString();
+        comment.subject = rawComment["subject"].toString();
+        comment.userpic = rawComment["userpic"].toString();
         comment.id = QString::number(rawComment["dtalkid"].toInt());
         comment.parent = QString::number(rawComment["parent"].toInt());
+
+        if (comment.userpic.isEmpty())
+            continue;
+
+        const QString& avatarFilename = QString(
+                    QCryptographicHash::hash(comment.userpic.toUtf8(), QCryptographicHash::Md5).toHex())
+                + ".jpeg";
+
+                m_content.get(info.storage + QDir::separator() + info.name + QDir::separator() + "avatars",
+                      comment.userpic,
+                      avatarFilename);
     }
 
     QHash<QString, QVector<Comment const*>> treeMap;
@@ -65,4 +79,7 @@ void Entry::pageFinished()
 {
     buildTree();
 
+    info.article.setHtml(m_page->article);
+
+    emit finished();
 }

@@ -39,5 +39,5 @@ void MainWindow::on_pushButton_clicked()
 
 void MainWindow::onRequestFinished()
 {
-   ui->plainTextEdit_2->setPlainText("!!");//(m_entry->info.);
+   ui->textEdit->setPlainText(m_entry->info.article.toHtml());
 }
