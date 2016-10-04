@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QSharedPointer>
-#include <QVector>
+#include <QQueue>
 
 class Downloader;
 class Page;
@@ -24,7 +24,7 @@ public:
         QString id;
         QString parent;
 
-        QVector<Comment> children;
+        QQueue<Comment> children;
     };
 
     struct Info
@@ -33,7 +33,7 @@ public:
         const QString name;
         const QString number;
 
-        QVector<Comment> comments;
+        QQueue<Comment> comments;
     } info;
 
 signals:
@@ -45,6 +45,7 @@ private slots:
 private:
     Downloader& m_content;
     Page* m_page;
+    void buildTree();
 };
 
 #endif // ENTRY_H
