@@ -26,6 +26,9 @@ private slots:
     void on_loadPage_clicked();
 
 private:
+    static QString print(const Entry::Info& info);
+    static void printComments(const QQueue<Entry::Comment>& comments, QString& result);
+
     Ui::MainWindow *ui;
     Entry* m_entry;
     Downloader* m_contentMgr;

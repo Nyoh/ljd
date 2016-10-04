@@ -43,15 +43,15 @@ void Entry::buildTree()
         comment.parent = QString::number(rawComment["parent"].toInt());
 
         if (comment.userpic.isEmpty())
+        {
             continue;
+        }
 
-        const QString& avatarFilename = QString(
-                    QCryptographicHash::hash(comment.userpic.toUtf8(), QCryptographicHash::Md5).toHex())
-                + ".jpeg";
+        comment.userpicFile = QString(QCryptographicHash::hash(comment.userpic.toUtf8(), QCryptographicHash::Md5).toHex()) + ".jpeg";
 
-                m_content.get(info.storage + QDir::separator() + info.name + QDir::separator() + "avatars",
+        m_content.get(info.storage + QDir::separator() + info.name + QDir::separator() + "avatars",
                       comment.userpic,
-                      avatarFilename);
+                      comment.userpicFile);
     }
 
     QHash<QString, QVector<Comment const*>> treeMap;

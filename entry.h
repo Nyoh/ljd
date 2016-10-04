@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QSharedPointer>
 #include <QQueue>
-#include <QTextDocument>
 
 class Downloader;
 class Page;
@@ -21,9 +20,9 @@ public:
         QString name;
         QString text;
         QString date;
-        QString avatar;
         QString subject;
         QString userpic;
+        QString userpicFile;
         QString id;
         QString parent;
 
