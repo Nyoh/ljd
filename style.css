@@ -4,6 +4,12 @@ body {
   padding:50px;
 }
 
+#main
+{
+	border-style: solid;
+    border-width: 0.2px;
+	margin: 5px;
+}
 
 /**
  * Framework starts from here ...
@@ -15,8 +21,8 @@ body {
   margin:0 0 0 1em; /* indentation */
   padding:0;
   list-style:none;
-  color:#369;
   position:relative;
+
 }
 
 .tree ul {margin-left:.5em} /* (indentation/2) */

@@ -56,7 +56,7 @@ void MainWindow::printComments(const QQueue<Entry::Comment>& comments, QString &
 {
     for (const auto& comment : comments)
     {
-        result += "<li><div>";
+        result += "<li><div id=\"main\">";
 
         result += "<img src=\"..//avatars//" + comment.userpicFile + "\" width=\"20\" height=\"20\" align=\"left\">";
         result +=  '(' + comment.date + ") <b>" + comment.name + "</b>: ";
