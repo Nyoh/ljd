@@ -16,13 +16,13 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     page.cpp \
     image.cpp \
-    contentmanager.cpp \
-    entry.cpp
+    entry.cpp \
+    downloader.cpp
 
 HEADERS  += mainwindow.h \
     page.h \
     image.h \
-    contentmanager.h \
-    entry.h
+    entry.h \
+    downloader.h
 
 FORMS    += mainwindow.ui

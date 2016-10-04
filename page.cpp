@@ -1,5 +1,4 @@
 #include "page.h"
-#include "query.h"
 
 #include <random>
 #include <thread>
@@ -62,7 +61,7 @@ void Page::query(QNetworkReply *&reply, const QString& url)
     reply = m_netManager.get(QNetworkRequest(QUrl(url)));
 }
 
-void Page::start()
+void Page::load()
 {
     if (!loadFromStorage())
     {
@@ -160,8 +159,10 @@ void Page::commentsFromNet()
 
         qDebug() << "Downloaded: " + commentsUrl(m_name, m_number);
 
-        QJsonDocument pageJson = QJsonDocument::fromBinaryData(m_commentsReply->readAll());
-        rawComments = pageJson.object()["comments"].toArray();
+        const QString reply(m_commentsReply->readAll());
+        const QJsonDocument& pageJson = QJsonDocument::fromJson(reply.toUtf8());
+        const QJsonObject& partsObject = pageJson.object();
+        rawComments = partsObject["comments"].toArray();
 
         commentsDone = true;
         save();
@@ -203,12 +204,8 @@ void Page::save()
             return;
         }
 
-        QJsonArray commentsJson;
-        for (const auto& comment : rawComments)
-            commentsJson.append(comment);
-
         QJsonObject root;
-        root["raw_comments"] = commentsJson;
+        root["raw_comments"] = rawComments;
         root["prev"] = prev;
         root["next"] = next;
 

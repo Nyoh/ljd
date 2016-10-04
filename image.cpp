@@ -8,41 +8,24 @@
 #include <QFile>
 #include <QtNetwork/QNetworkReply.h>
 
-
-namespace
-{
-    void waitABit()
-    {
-        static std::random_device rd;
-        static std::mt19937 gen(rd());
-        static std::uniform_int_distribution<> dis(1000, 2000);
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(dis(gen)));
-    }
-}
-
 Image::Image(QNetworkAccessManager &netManager, const QString &storage, const QString& filename, const QString& url, QObject *parent)
     : QObject(parent)
-    , m_netManager(netManager)
     , m_storage(storage)
     , m_filename(filename)
     , m_url(url)
+    , m_netManager(netManager)
 {
 }
 
 void Image::load()
 {
-    started = true;
-
     if (saved())
     {
-        finished = true;
-        emit done();
+        emit done(m_url, false);
         return;
     }
 
     qDebug() << "Downloading image " + m_url;
-    waitABit();
     m_reply = m_netManager.get(QNetworkRequest(QUrl(m_url)));
     connect(m_reply, SIGNAL(finished()), this, SLOT(finishedDownload()));
 }
@@ -52,8 +35,8 @@ void Image::finishedDownload()
     m_reply->deleteLater();
     if(m_reply->error() != QNetworkReply::NoError)
     {
-        errorMessage = m_reply->errorString();
-        emit done();
+        qWarning() << "Failed to download image:" + m_url + "   " + m_reply->errorString();
+        emit done(m_url, true);
         return;
     }
 
@@ -63,16 +46,14 @@ void Image::finishedDownload()
     QFile localFile(filePath);
     if (!localFile.open(QIODevice::WriteOnly))
     {
-        errorMessage = "Failed to save image to " + filePath;
-        emit done();
+        qCritical() << "Failed to save image to " + filePath;
+        emit done(m_url, true);
         return;
     }
 
     localFile.write(m_reply->readAll());
     localFile.close();
-
-    finished = true;
-    emit done();
+    emit done(m_url, false);
 }
 
 bool Image::saved()

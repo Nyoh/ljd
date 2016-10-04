@@ -5,14 +5,14 @@
 #include <QSharedPointer>
 #include <QVector>
 
-class ContentManager;
+class Downloader;
 class Page;
 
 class Entry : public QObject
 {
     Q_OBJECT
 public:
-    explicit Entry(ContentManager& content, const QString& storage, const QString& name, const QString& number, QObject *parent = 0);
+    explicit Entry(Downloader& content, const QString& storage, const QString& name, const QString& number, QObject *parent = 0);
     void load();
 
     struct Comment
@@ -37,15 +37,14 @@ public:
     } info;
 
 signals:
-    void updated();
     void finished();
 
 private slots:
     void pageFinished();
 
 private:
-    ContentManager& m_content;
-    QSharedPointer<Page> m_page;
+    Downloader& m_content;
+    Page* m_page;
 };
 
 #endif // ENTRY_H

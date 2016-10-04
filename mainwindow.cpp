@@ -1,15 +1,15 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "contentmanager.h"
-#include "image.h"
+#include "downloader.h"
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    m_contentMgr = new ContentManager();
+    m_contentMgr = new Downloader();
 }
 
 MainWindow::~MainWindow()
@@ -30,13 +30,14 @@ void MainWindow::on_pushButton_clicked()
         return;
 
     const QString& pageNum = url.mid(tagStart + LJ_TAG.size(), nextDot - (tagStart + LJ_TAG.size()));
-    m_page = m_contentMgr->getPage(".", name, pageNum).data();
-    connect( m_page, SIGNAL(finishedPage(int, bool)), this, SLOT(onRequestFinished(int)) );
+    m_entry = new Entry(*m_contentMgr, ".", name, pageNum, this);
+    connect( m_entry, SIGNAL(finished()), this, SLOT(onRequestFinished()) );
+    m_entry->load();
 
 //    Image* image = new Image(*netManager, name + "/cavatars", "temp.jpeg", "http://l-userpic.livejournal.com/4456799/793195", this);
 }
 
-void MainWindow::onRequestFinished(int)
+void MainWindow::onRequestFinished()
 {
-   ui->plainTextEdit_2->setPlainText(m_page->article);
+   ui->plainTextEdit_2->setPlainText("!!");//(m_entry->info.);
 }

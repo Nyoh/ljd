@@ -21,7 +21,7 @@ public:
     QString next;
 
     explicit Page(QNetworkAccessManager& netManager, const QString& storage, const QString& name, const QString& number);
-    void start();
+    void load();
 
     std::atomic<bool> commentsDone{false};
     std::atomic<bool> articleDone{false};

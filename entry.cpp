@@ -1,10 +1,11 @@
 #include "entry.h"
 
 #include <QDir>
+#include <QJsonObject>
 
-#include "contentmanager.h"
+#include "downloader.h"
 
-Entry::Entry(ContentManager &content, const QString &storage, const QString &name, const QString &number, QObject *parent)
+Entry::Entry(Downloader &content, const QString &storage, const QString &name, const QString &number, QObject *parent)
     : QObject(parent)
     , info{storage, name, number}
     , m_content(content)
@@ -13,13 +14,14 @@ Entry::Entry(ContentManager &content, const QString &storage, const QString &nam
 
 void Entry::load()
 {
-    m_page = m_content.getPage(info.storage + QDir::separator() + info.name + QDir::separator() + "raw_data", info.name, info.number);
-    connect(m_page.data(), SIGNAL(finishedAll()), this, SLOT(pageFinished()));
-    if (m_page->finished)
-        pageFinished();
+    QDir storage(info.storage);
+    storage.mkdir(".");
+    storage.mkdir(info.name);
+    m_page = new Page(*m_content.getNetwork(), info.storage + QDir::separator() + info.name + QDir::separator() + "raw_data", info.name, info.number);
+    connect(m_page, SIGNAL(finished()), this, SLOT(pageFinished()));
+    m_page->load();
 }
 
-//can triger twice but who cares?
 void Entry::pageFinished()
 {
     QVector<Comment> commentBundle;
@@ -27,12 +29,14 @@ void Entry::pageFinished()
     {
         commentBundle.push_back(Comment());
         Comment& comment = commentBundle.back();
-        comment.name = commentJson["dname"].toString();
-        comment.date = commentJson["ctime"].toString();
-        comment.text = commentJson["article"].toString();
-        comment.id = commentJson["article"].toString();
-        comment.text = commentJson["article"].toString();
-        comment.text = commentJson["article"].toString();
-        comment.text = commentJson["article"].toString();
+        QJsonObject rawComment = commentJson.toObject();
+
+        comment.name = rawComment["dname"].toString();
+        comment.date = rawComment["ctime"].toString();
+        comment.text = rawComment["article"].toString();
+        comment.id = rawComment["article"].toString();
+        comment.text = rawComment["article"].toString();
+        comment.text = rawComment["article"].toString();
+        comment.text = rawComment["article"].toString();
     }
 }

@@ -3,9 +3,9 @@
 
 #include <QMainWindow>
 
-#include "page.h"
+#include "entry.h"
 
-class ContentManager;
+class Downloader;
 
 namespace Ui {
     class MainWindow;
@@ -20,15 +20,15 @@ public:
     ~MainWindow();
 
 public slots:
-    void onRequestFinished(int);
+    void onRequestFinished();
 
 private slots:
     void on_pushButton_clicked();
 
 private:
     Ui::MainWindow *ui;
-    Page* m_page;
-    ContentManager* m_contentMgr;
+    Entry* m_entry;
+    Downloader* m_contentMgr;
 };
 
 #endif // MAINWINDOW_H
