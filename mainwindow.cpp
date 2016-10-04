@@ -17,9 +17,20 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_pushButton_clicked()
+void MainWindow::onRequestFinished()
 {
-    QString url = ui->plainTextEdit->toPlainText();
+   ui->viewer->setHtml(m_entry->info.article);
+
+   QListWidgetItem* item = new QListWidgetItem("item", ui->entriesList);
+   item->setFlags(item->flags() | Qt::ItemIsUserCheckable); // set checkable flag
+   item->setCheckState(Qt::Unchecked); // AND initialize check state
+
+   ui->entriesList->insertItem(0, item);
+}
+
+void MainWindow::on_loadPage_clicked()
+{
+    QString url = ui->urlText->toPlainText();
     const auto tagStart = url.indexOf(LJ_TAG);
     if (tagStart == -1)
         return;
@@ -35,9 +46,5 @@ void MainWindow::on_pushButton_clicked()
     m_entry->load();
 
 //    Image* image = new Image(*netManager, name + "/cavatars", "temp.jpeg", "http://l-userpic.livejournal.com/4456799/793195", this);
-}
 
-void MainWindow::onRequestFinished()
-{
-   ui->textEdit->setPlainText(m_entry->info.article.toHtml());
 }

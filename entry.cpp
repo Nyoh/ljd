@@ -79,7 +79,7 @@ void Entry::pageFinished()
 {
     buildTree();
 
-    info.article.setHtml(m_page->article);
+    info.article = m_page->article;
 
     emit finished();
 }

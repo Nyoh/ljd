@@ -36,7 +36,7 @@ public:
         const QString name;
         const QString number;
 
-        QTextDocument article;
+        QString article;
         QQueue<Comment> comments;
     } info;
 
