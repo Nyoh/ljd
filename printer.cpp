@@ -81,6 +81,7 @@ QString Printer::print(const Entry &entry)
 
     result += "<div style=\"max-width: 1100px;\">";
     printPrevNext(result);
+    result += "<h2>" + subtitle + "</h2>";
     result += entry.info.article;
     result += "</div>";
     printPrevNext(result);

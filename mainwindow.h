@@ -4,6 +4,7 @@
 #include <QMainWindow>
 
 #include "entry.h"
+#include "printer.h"
 
 class Downloader;
 
@@ -20,15 +21,15 @@ public:
     ~MainWindow();
 
 public slots:
-    void onRequestFinished();
+    void showSelectedPage();
 
 private slots:
     void on_loadPage_clicked();
 
 private:
     Ui::MainWindow *ui;
-    Entry* m_entry;
     Downloader* m_contentMgr;
+    Printer* m_printer;
 };
 
 #endif // MAINWINDOW_H

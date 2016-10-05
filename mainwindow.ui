@@ -32,17 +32,36 @@
          <number>10</number>
         </property>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0">
+         <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0,0">
           <item>
-           <widget class="QPlainTextEdit" name="urlText">
+           <widget class="QPlainTextEdit" name="nameText">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+             <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
               <horstretch>1</horstretch>
               <verstretch>1</verstretch>
              </sizepolicy>
             </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>24</height>
+             </size>
+            </property>
             <property name="plainText">
-             <string>galkovsky.livejournal.com/225457.html</string>
+             <string>galkovsky</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPlainTextEdit" name="numberText">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="plainText">
+             <string>225457</string>
             </property>
            </widget>
           </item>
@@ -90,6 +109,9 @@
               <horstretch>1</horstretch>
               <verstretch>100</verstretch>
              </sizepolicy>
+            </property>
+            <property name="modelColumn">
+             <number>0</number>
             </property>
            </widget>
           </item>

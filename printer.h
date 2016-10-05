@@ -21,6 +21,7 @@ public:
     QString nextUrl = "adfsd";
     QString nextTitle = "next";
     QString contentUrl = "content";
+    QString subtitle = "subtitle";
 
 private:
     void printComments(const QQueue<Entry::Comment> &comments, QString &result);

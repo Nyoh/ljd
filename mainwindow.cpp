@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     m_contentMgr = new Downloader();
+    m_printer = new Printer(this);;
 }
 
 MainWindow::~MainWindow()
@@ -20,36 +21,41 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::onRequestFinished()
+void MainWindow::showSelectedPage()
 {
-    Printer* printer = new Printer(this);
+    const auto& selected = ui->entriesList->selectedItems();
+    if (selected.isEmpty())
+        return;
 
-    ui->viewer->setHtml(printer->print(*m_entry));
-
-    QListWidgetItem* item = new QListWidgetItem("item", ui->entriesList);
-    item->setFlags(item->flags() | Qt::ItemIsUserCheckable); // set checkable flag
-    item->setCheckState(Qt::Unchecked); // AND initialize check state
-
-    ui->entriesList->insertItem(0, item);
+    const Entry* entry = selected.first()->data(Qt::UserRole).value<Entry*>();
+    ui->viewer->setHtml(m_printer->print(*entry));
 }
 
 void MainWindow::on_loadPage_clicked()
 {
-    QString url = ui->urlText->toPlainText();
-    const auto tagStart = url.indexOf(LJ_TAG);
-    if (tagStart == -1)
-        return;
+    const QString& name = ui->nameText->toPlainText();
+    const QString& number = ui->numberText->toPlainText();
 
-    const QString& name = url.mid(0, tagStart);
-    const auto nextDot = url.indexOf('.', tagStart + LJ_TAG.size());
-    if (nextDot == -1)
-        return;
+    for (size_t i = 0; i != ui->entriesList->count(); i++)
+    {
+        QListWidgetItem* item = ui->entriesList->item(i);
+        Entry* entry = item->data(Qt::UserRole).value<Entry*>();
+        if (entry->info.name == name && entry->info.number == number)
+        {
+            item->setSelected(true);
+            return;
+        }
+    }
 
-    const QString& pageNum = url.mid(tagStart + LJ_TAG.size(), nextDot - (tagStart + LJ_TAG.size()));
-    m_entry = new Entry(*m_contentMgr, ".", name, pageNum, this);
-    connect( m_entry, SIGNAL(finished()), this, SLOT(onRequestFinished()) );
-    m_entry->load();
+    Entry* entry = new Entry(*m_contentMgr, ".", name, number, this);
 
-    //    Image* image = new Image(*netManager, name + "/cavatars", "temp.jpeg", "http://l-userpic.livejournal.com/4456799/793195", this);
+    QListWidgetItem* item = new QListWidgetItem(number, ui->entriesList);
+    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+    item->setCheckState(Qt::Checked);
+    item->setData(Qt::UserRole, QVariant::fromValue<Entry*>(entry));
+    item->setSelected(true);
+    ui->entriesList->insertItem(ui->entriesList->count(), item);
 
+    connect(entry, SIGNAL(finished()), this, SLOT(showSelectedPage()));
+    entry->load();
 }

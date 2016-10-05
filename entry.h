@@ -54,4 +54,6 @@ private:
     void printComments(const QQueue<Entry::Comment> &comments, QString &result);
 };
 
+Q_DECLARE_METATYPE(Entry*)
+
 #endif // ENTRY_H
