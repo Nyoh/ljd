@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->storageText->setPlainText(QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation).front());
+ //   ui->storageText->setPlainText(QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation).front());
     m_contentMgr = new Downloader();
 
     connect(ui->entriesList, SIGNAL(currentRowChanged(int)), this, SLOT(showSelectedPage()), Qt::QueuedConnection);
