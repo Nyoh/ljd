@@ -5,7 +5,7 @@
 #include <QTextFrame>
 
 #include "downloader.h"
-
+#include "printer.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -22,7 +22,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::onRequestFinished()
 {
-    ui->viewer->setPlainText(print(m_entry->info));
+    Printer* printer = new Printer(this);
+
+    ui->viewer->setHtml(printer->print(*m_entry));
 
     QListWidgetItem* item = new QListWidgetItem("item", ui->entriesList);
     item->setFlags(item->flags() | Qt::ItemIsUserCheckable); // set checkable flag
@@ -50,31 +52,4 @@ void MainWindow::on_loadPage_clicked()
 
     //    Image* image = new Image(*netManager, name + "/cavatars", "temp.jpeg", "http://l-userpic.livejournal.com/4456799/793195", this);
 
-}
-
-void MainWindow::printComments(const QQueue<Entry::Comment>& comments, QString &result)
-{
-    for (const auto& comment : comments)
-    {
-        result += "<li><div id=\"main\">";
-
-        result += "<img src=\"..//avatars//" + comment.userpicFile + "\" width=\"20\" height=\"20\" align=\"left\">";
-        result +=  '(' + comment.date + ") <b>" + comment.name + "</b>: ";
-        result += "<div>";
-        result += comment.text;
-        result += "</div></div><ul>";
-
-        printComments(comment.children, result);
-
-        result += "</ul></li>";
-    }
-}
-
-QString MainWindow::print(const Entry::Info &info)
-{
-    QString comments;
-    comments += "<link rel=\"stylesheet\" href=\"style.css\"><div><ul class=\"tree\">";
-    printComments(info.comments, comments);
-    comments += "</ul></div>";
-    return info.article + comments;
 }

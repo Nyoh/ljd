@@ -17,12 +17,14 @@ SOURCES += main.cpp\
     page.cpp \
     image.cpp \
     entry.cpp \
-    downloader.cpp
+    downloader.cpp \
+    printer.cpp
 
 HEADERS  += mainwindow.h \
     page.h \
     image.h \
     entry.h \
-    downloader.h
+    downloader.h \
+    printer.h
 
 FORMS    += mainwindow.ui

@@ -40,7 +40,7 @@ void Entry::buildTree()
         comment.subject = rawComment["subject"].toString();
         comment.userpic = rawComment["userpic"].toString();
         comment.id = QString::number(rawComment["dtalkid"].toInt());
-        comment.parent = QString::number(rawComment["parent"].toInt());
+        comment.parent = QString::number(rawComment["parent"].toInt(-1));
 
         if (comment.userpic.isEmpty())
         {
@@ -59,9 +59,11 @@ void Entry::buildTree()
     {
         treeMap[comment.parent].push_back(&comment);
     }
-
+    QHash<QString, int> used;
     QQueue<QPair<QString, QQueue<Comment>*>> queue;
-    queue.push_back(QPair<QString, QQueue<Comment>*>("0", &info.comments));
+    int tasksQueued = 1;
+    queue.push_back(QPair<QString, QQueue<Comment>*>("-1", &info.comments));
+
     while (!queue.isEmpty())
     {
         const auto& pair = queue.front();
@@ -70,6 +72,8 @@ void Entry::buildTree()
         {
             pair.second->push_back(*child);
             queue.push_back(QPair<QString, QQueue<Comment>*>(child->id, &pair.second->back().children));
+            used[child->id] = 1;
+            tasksQueued++;
         }
         queue.pop_front();
     }

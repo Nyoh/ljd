@@ -39,6 +39,8 @@ public:
         QQueue<Comment> comments;
     } info;
 
+    QString print();
+
 signals:
     void finished();
 
@@ -49,6 +51,7 @@ private:
     Downloader& m_content;
     Page* m_page;
     void buildTree();
+    void printComments(const QQueue<Entry::Comment> &comments, QString &result);
 };
 
 #endif // ENTRY_H
