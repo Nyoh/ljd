@@ -16,12 +16,11 @@ public:
     bool comments = true;
     bool filterCommentsByAuthor = true;
 
-    QString prevUrl = "dfsdg";
-    QString prevTitle = "prev";
-    QString nextUrl = "adfsd";
-    QString nextTitle = "next";
-    QString contentUrl = "content";
-    QString subtitle = "subtitle";
+    QString prevUrl;
+    QString prevTitle;
+    QString nextUrl;
+    QString nextTitle;
+    QString contentUrl;
 
 private:
     void printComments(const QQueue<Entry::Comment> &comments, QString &result);

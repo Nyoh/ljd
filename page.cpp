@@ -23,11 +23,6 @@ namespace
         return storage + QDir::separator() + name + number + ".json";
     }
 
-    QString articleUrl(const QString& name, const QString& number)
-    {
-        return "http://" + name + LJ_TAG + number + ".html";
-    }
-
     QString commentsUrl(const QString& name, const QString& number)
     {
         return "http://" + name + ".livejournal.com/" + name + "/__rpc_get_thread?journal=" + name + "&itemid=" + number + "&flat=&skip=&media=&expand_all=1";
@@ -52,6 +47,7 @@ Page::Page(QNetworkAccessManager& netManager, const QString& storage, const QStr
     , m_number(number)
     , m_netManager(netManager)
 {
+    url = "http://" + name + LJ_TAG + number + ".html";
 }
 
 void Page::query(QNetworkReply *&reply, const QString& url)
@@ -65,7 +61,7 @@ void Page::load()
 {
     if (!loadFromStorage())
     {
-        query(m_articleReply, articleUrl(m_name, m_number));
+        query(m_articleReply, url);
         connect(m_articleReply, SIGNAL(finished()), this, SLOT(articleFromNet()));
 
         query(m_commentsReply, commentsUrl(m_name, m_number));
@@ -133,9 +129,9 @@ void Page::articleFromNet()
     try
     {
         if(m_articleReply->error() != QNetworkReply::NoError)
-            throw "Failed to download " + articleUrl(m_name, m_number) + ". " + m_articleReply->errorString();
+            throw "Failed to download " + url + ". " + m_articleReply->errorString();
 
-        qDebug() << "Downloaded: " + articleUrl(m_name, m_number);
+        qDebug() << "Downloaded: " + url;
         parse(m_articleReply->readAll());
 
         articleDone = true;

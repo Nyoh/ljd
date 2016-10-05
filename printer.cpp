@@ -70,7 +70,7 @@ void Printer::printPrevNext(QString &result)
             prevUrl + "\">← " + prevTitle + "</a></li>";
 
     result += "<li style=\"float: right; list-style: none; font-weight: bold;\"><a href=\"" +
-            prevUrl + "\">" + nextTitle + " →</a></li>";
+            nextUrl + "\">" + nextTitle + " →</a></li>";
     result += "</ul></div>";
 }
 
@@ -81,7 +81,7 @@ QString Printer::print(const Entry &entry)
 
     result += "<div style=\"max-width: 1100px;\">";
     printPrevNext(result);
-    result += "<h2>" + subtitle + "</h2>";
+    result += "<h2>" + entry.info.url + "</h2>";
     result += entry.info.article;
     result += "</div>";
     printPrevNext(result);

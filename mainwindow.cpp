@@ -9,6 +9,7 @@
 #include <QJsonArray>
 #include <QTextDocument>
 #include <QTextFrame>
+#include <QStandardPaths>
 
 #include "downloader.h"
 #include "printer.h"
@@ -18,8 +19,8 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->storageText->setPlainText(QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation).front());
     m_contentMgr = new Downloader();
-    m_printer = new Printer(this);
 
     connect(ui->entriesList, SIGNAL(currentRowChanged(int)), this, SLOT(showSelectedPage()), Qt::QueuedConnection);
 }
@@ -41,8 +42,24 @@ void MainWindow::showSelectedPage()
     if (selected.isEmpty())
         return;
 
+    const int index = ui->entriesList->row(selected.first());
     const Entry* entry = selected.first()->data(Qt::UserRole).value<Entry*>();
-    ui->viewer->setHtml(m_printer->print(*entry));
+
+    Printer printer;
+    if (index != 0)
+    {
+        Entry* prev = ui->entriesList->item(index - 1)->data(Qt::UserRole).value<Entry*>();
+        printer.prevTitle = prev->info.title;
+        printer.prevUrl = prev->info.number + ".html";
+    }
+    if (index + 1 < ui->entriesList->count())
+    {
+        Entry* next = ui->entriesList->item(index + 1)->data(Qt::UserRole).value<Entry*>();
+        printer.nextTitle = next->info.title;
+        printer.nextUrl = next->info.number + ".html";
+    }
+
+    ui->viewer->setHtml(printer.print(*entry));
 }
 
 void MainWindow::loadEntry(const QString& number, const QString& name)

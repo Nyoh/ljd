@@ -15,6 +15,7 @@ class Page : public QObject
 {
     Q_OBJECT
 public:
+    QString url;
     QString article;
     QJsonArray rawComments;
     QString prev;

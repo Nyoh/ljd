@@ -4,7 +4,6 @@
 #include <QMainWindow>
 
 #include "entry.h"
-#include "printer.h"
 
 class Downloader;
 
@@ -33,7 +32,6 @@ private slots:
 private:
     Ui::MainWindow *ui;
     Downloader* m_contentMgr;
-    Printer* m_printer;
     const QString configFileName();
     size_t m_skipBeforeUpdate = 0;
     void loadEntry(const QString& number, const QString& name);

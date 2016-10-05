@@ -84,6 +84,15 @@ void Entry::pageFinished()
     buildTree();
 
     info.article = m_page->article;
+    info.next = m_page->next;
+    info.prev = m_page->prev;
+
+    auto start = info.article.indexOf("<h1 ");
+    start = info.article.indexOf(">", start);
+    start++;
+    info.title = info.article.mid(start, info.article.indexOf("</h1>", start) - start);
+    info.title = info.title.trimmed();
+    info.url = m_page->url;
 
     emit finished();
 }

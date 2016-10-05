@@ -36,6 +36,10 @@ public:
         const QString number;
 
         QString article;
+        QString title;
+        QString prev;
+        QString next;
+        QString url;
         QQueue<Comment> comments;
     } info;
 
