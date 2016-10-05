@@ -75,7 +75,7 @@ void MainWindow::loadEntry(const QString& number, const QString& name, bool chec
     ui->entriesList->insertItem(ui->entriesList->count(), item);
 
     connect(entry, SIGNAL(finished()), this, SLOT(showSelectedPage()), Qt::QueuedConnection);
-    connect(entry, &Entry::finished, [item, entry](){item->setText(entry->info.title);});
+    connect(entry, &Entry::finished, [item, entry](){item->setText(entry->info.number + " - " + entry->info.title);});
     entry->load();
 }
 
@@ -117,13 +117,29 @@ void MainWindow::on_saveConfig_clicked()
 
     QJsonArray entries;
 
+    QVector<QPair<Entry*, bool>> entriesVector;
     for (size_t i = 0; i != ui->entriesList->count(); i++)
     {
         QListWidgetItem* item = ui->entriesList->item(i);
-        Entry* entry = item->data(Qt::UserRole).value<Entry*>();
+        entriesVector.push_back(QPair<Entry*, bool>(item->data(Qt::UserRole).value<Entry*>(), item->checkState() == Qt::Checked));
+    }
+
+    qSort(entriesVector.begin(), entriesVector.end(), [](const QPair<Entry*, bool>& left, const QPair<Entry*, bool>& right){
+        const auto& l = left.first->info.number;
+        const auto& r = right.first->info.number;
+        if (l.size() > r.size())
+            return true;
+        else if (l.size() < r.size())
+            return false;
+
+        return l > r;
+    });
+
+    for (const auto& pair : entriesVector)
+    {
         QJsonObject entryJson;
-        entryJson["number"] = entry->info.number;
-        entryJson["checked"] = (item->checkState() == Qt::Checked);
+        entryJson["number"] = pair.first->info.number;
+        entryJson["checked"] = pair.second;
 
         entries.push_back(entryJson);
     }
