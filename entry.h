@@ -56,6 +56,7 @@ private:
     Page* m_page;
     void buildTree();
     void printComments(const QQueue<Entry::Comment> &comments, QString &result);
+    void processArticle();
 };
 
 Q_DECLARE_METATYPE(Entry*)

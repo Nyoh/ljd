@@ -52,7 +52,7 @@ Page::Page(QNetworkAccessManager& netManager, const QString& storage, const QStr
 
 void Page::query(QNetworkReply *&reply, const QString& url)
 {
-    waitABit();
+    //waitABit();
     qDebug() << "Downloading " + url;
     reply = m_netManager.get(QNetworkRequest(QUrl(url)));
 }

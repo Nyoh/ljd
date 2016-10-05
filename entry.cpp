@@ -79,11 +79,34 @@ void Entry::buildTree()
     }
 }
 
+void Entry::processArticle()
+{
+    info.article = m_page->article;
+
+    static const QString imageTag("<img src=\"");
+    auto start = info.article.indexOf(imageTag);
+    while (start != -1)
+    {
+        start += imageTag.size();
+        auto end = info.article.indexOf("\"", start);
+        const auto& imageUrl = info.article.mid(start, end - start);
+        const auto& imageFileName = QString(QCryptographicHash::hash(imageUrl.toUtf8(), QCryptographicHash::Md5).toHex()) + ".jpeg";
+        const auto& imageFilePath = QString("images") + QDir::separator() + imageFileName;
+
+        m_content.get(info.storage + QDir::separator() + info.name + QDir::separator() + "images",
+                      imageUrl,
+                      imageFileName);
+
+        info.article.replace(start, end - start, imageFilePath);
+        start = info.article.indexOf(imageTag, end);
+    }
+}
+
 void Entry::pageFinished()
 {
     buildTree();
+    processArticle();
 
-    info.article = m_page->article;
     info.next = m_page->next;
     info.prev = m_page->prev;
 

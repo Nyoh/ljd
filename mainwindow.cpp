@@ -59,6 +59,7 @@ void MainWindow::showSelectedPage()
         printer.nextUrl = next->info.number + ".html";
     }
 
+    ui->numberText->setPlainText(entry->info.number);
     ui->viewer->setHtml(printer.print(*entry));
 }
 
@@ -154,4 +155,40 @@ void MainWindow::on_loadConfig_clicked()
         m_skipBeforeUpdate++;
     }
     m_skipBeforeUpdate--;
+}
+
+void MainWindow::go(bool next)
+{
+    const auto& selected = ui->entriesList->selectedItems();
+    if (selected.isEmpty())
+        return;
+
+    const int index = ui->entriesList->row(selected.first());
+    const Entry* entry = selected.first()->data(Qt::UserRole).value<Entry*>();
+
+    const QString& url = next ? entry->info.next : entry->info.prev;
+    if (url.isEmpty())
+        return;
+
+    const auto tagStart = url.indexOf(LJ_TAG);
+    if (tagStart == -1)
+        return;
+
+    const auto nextDot = url.indexOf('.', tagStart + LJ_TAG.size());
+    if (nextDot == -1)
+        return;
+
+    const QString& pageNum = url.mid(tagStart + LJ_TAG.size(), nextDot - (tagStart + LJ_TAG.size()));
+    ui->numberText->setPlainText(pageNum);
+    on_loadPage_clicked();
+}
+
+void MainWindow::on_nextButton_clicked()
+{
+    go(true);
+}
+
+void MainWindow::on_prevButton_clicked()
+{
+    go(false);
 }
