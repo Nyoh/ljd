@@ -231,7 +231,29 @@ void MainWindow::on_printBook_clicked()
             printer.nextTitle = next->info.title;
             printer.nextUrl = next->info.number + ".html";
         }
+        printer.contentUrl = "!content.html";
 
         printer.print(*entry, true);
     }
+
+
+    QFile file(ui->storageText->toPlainText() + QDir::separator() + ui->nameText->toPlainText() + QDir::separator() + "!content.html");
+    if (!file.open(QIODevice::WriteOnly))
+    {
+        qCritical() << "Failed to write the file " + ui->storageText->toPlainText() + QDir::separator() + ui->nameText->toPlainText() + QDir::separator() + "!content.html";
+        return;
+    }
+
+    QString result;
+    for (const auto& entry : entries)
+    {
+        result += "<div><a href=" + entry->info.number + ".html>" + entry->info.title + "</a></div>";
+    }
+
+    QTextStream stream(&file);
+    stream.setGenerateByteOrderMark(true);
+    stream.setCodec("UTF-8");
+    stream << result.toUtf8();
+
+    qDebug() << "Printed: content.";
 }
