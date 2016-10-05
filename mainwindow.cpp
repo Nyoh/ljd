@@ -103,7 +103,7 @@ void MainWindow::on_loadPage_clicked()
 
 const QString MainWindow::configFileName()
 {
-    const QString& fileName = ui->storageText->toPlainText() + QDir::separator() + ui->nameText->toPlainText() + QDir::separator() + "config.json";
+    const QString& fileName = ui->storageText->toPlainText() + QDir::separator() + ui->nameText->toPlainText() + QDir::separator() + "!config.json";
     return fileName;
 }
 
