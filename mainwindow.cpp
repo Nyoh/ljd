@@ -10,6 +10,7 @@
 #include <QTextDocument>
 #include <QTextFrame>
 #include <QStandardPaths>
+#include <QScrollBar>
 
 #include "downloader.h"
 #include "printer.h"
@@ -73,6 +74,7 @@ void MainWindow::loadEntry(const QString& number, const QString& name, bool chec
     item->setData(Qt::UserRole, QVariant::fromValue<Entry*>(entry));
     item->setSelected(true);
     ui->entriesList->insertItem(ui->entriesList->count(), item);
+    ui->entriesList->verticalScrollBar()->setValue(ui->entriesList->verticalScrollBar()->maximum());
 
     connect(entry, SIGNAL(finished()), this, SLOT(showSelectedPage()), Qt::QueuedConnection);
     connect(entry, &Entry::finished, [item, entry](){item->setText(entry->info.number + " - " + entry->info.title);});
@@ -127,12 +129,12 @@ void MainWindow::on_saveConfig_clicked()
     qSort(entriesVector.begin(), entriesVector.end(), [](const QPair<Entry*, bool>& left, const QPair<Entry*, bool>& right){
         const auto& l = left.first->info.number;
         const auto& r = right.first->info.number;
-        if (l.size() > r.size())
+        if (l.size() < r.size())
             return true;
-        else if (l.size() < r.size())
+        else if (l.size() > r.size())
             return false;
 
-        return l > r;
+        return l < r;
     });
 
     for (const auto& pair : entriesVector)
