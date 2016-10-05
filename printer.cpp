@@ -28,7 +28,6 @@ namespace
 
 Printer::Printer(QObject *parent) : QObject(parent)
 {
-
 }
 
 QQueue<Entry::Comment> Printer::filterComments(const QQueue<Entry::Comment>& comments, const QString &author)
@@ -62,12 +61,34 @@ void Printer::printComments(const QQueue<Entry::Comment>& comments, QString &res
     }
 }
 
+void Printer::printPrevNext(QString &result)
+{
+    result += "<div style=\"position: relative; margin: 0 30px; padding: 1.5em 0; text-align: center;\">";
+    result += "<a href=\"" + contentUrl + "\">Content</a>";
+
+    result += "<ul><li style=\"float: left; list-style: none; font-weight: bold;\"><a href=\"" +
+            prevUrl + "\">← " + prevTitle + "</a></li>";
+
+    result += "<li style=\"float: right; list-style: none; font-weight: bold;\"><a href=\"" +
+            prevUrl + "\">" + nextTitle + " →</a></li>";
+    result += "</ul></div>";
+}
+
 QString Printer::print(const Entry &entry)
 {
-    QString result = entry.info.article;
+    QString result;
+    result.reserve(entry.info.article.size() * 8);
+
+    result += "<div style=\"max-width: 1100px;\">";
+    printPrevNext(result);
+    result += entry.info.article;
+    result += "</div>";
+    printPrevNext(result);
+
     result += "<br><link rel=\"stylesheet\" href=\"style.css\"><div><ul class=\"tree\">";
     printComments(filterComments(entry.info.comments, entry.info.name), result);
     result += "</ul></div>";
+    printPrevNext(result);
 
     QFile file(getFileName(entry.info.storage, entry.info.name, entry.info.number));
     if (!file.open(QIODevice::WriteOnly))
