@@ -25,6 +25,14 @@ void Entry::load()
     m_page->load();
 }
 
+void Entry::loadPictures()
+{
+    for (const auto& image : m_images)
+    {
+        m_content.get(std::get<0>(image), std::get<1>(image), std::get<2>(image));
+    }
+}
+
 void Entry::buildTree()
 {
     QVector<Comment> commentBundle;
@@ -49,9 +57,9 @@ void Entry::buildTree()
 
         comment.userpicFile = QString(QCryptographicHash::hash(comment.userpic.toUtf8(), QCryptographicHash::Md5).toHex()) + ".jpeg";
 
-        m_content.get(info.storage + QDir::separator() + info.name + QDir::separator() + "avatars",
-                      comment.userpic,
-                      comment.userpicFile);
+        m_images.push_back(std::make_tuple(info.storage + QDir::separator() + info.name + QDir::separator() + "avatars",
+                                           comment.userpic,
+                                           comment.userpicFile));
     }
 
     QHash<QString, QVector<Comment const*>> treeMap;
@@ -93,9 +101,9 @@ void Entry::processArticle()
         const auto& imageFileName = QString(QCryptographicHash::hash(imageUrl.toUtf8(), QCryptographicHash::Md5).toHex()) + ".jpeg";
         const auto& imageFilePath = QString("images") + QDir::separator() + imageFileName;
 
-        m_content.get(info.storage + QDir::separator() + info.name + QDir::separator() + "images",
-                      imageUrl,
-                      imageFileName);
+        m_images.push_back(std::make_tuple(info.storage + QDir::separator() + info.name + QDir::separator() + "images",
+                                           imageUrl,
+                                           imageFileName));
 
         info.article.replace(start, end - start, imageFilePath);
         start = info.article.indexOf(imageTag, end);

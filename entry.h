@@ -1,9 +1,12 @@
 #ifndef ENTRY_H
 #define ENTRY_H
 
+#include <tuple>
+
 #include <QObject>
 #include <QSharedPointer>
 #include <QQueue>
+#include <QVector>
 
 class Downloader;
 class Page;
@@ -14,6 +17,7 @@ class Entry : public QObject
 public:
     explicit Entry(Downloader& content, const QString& storage, const QString& name, const QString& number, QObject *parent = 0);
     void load();
+    void loadPictures();
 
     struct Comment
     {
@@ -54,6 +58,7 @@ private slots:
 private:
     Downloader& m_content;
     Page* m_page;
+    QVector<std::tuple<QString, QString, QString>> m_images;
     void buildTree();
     void printComments(const QQueue<Entry::Comment> &comments, QString &result);
     void processArticle();

@@ -275,3 +275,16 @@ void MainWindow::on_printBook_clicked()
 
     qDebug() << "Printed: content.";
 }
+
+void MainWindow::on_loadPicsButton_clicked()
+{
+    QVector<Entry*> entries;
+    for (size_t i = 0; i != ui->entriesList->count(); i++)
+    {
+        QListWidgetItem* item = ui->entriesList->item(i);
+        if (item->checkState() != Qt::Checked)
+            continue;
+
+        item->data(Qt::UserRole).value<Entry*>()->loadPictures();
+    }
+}

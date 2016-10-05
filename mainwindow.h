@@ -35,6 +35,8 @@ private slots:
 
     void on_printBook_clicked();
 
+    void on_loadPicsButton_clicked();
+
 private:
     Ui::MainWindow *ui;
     Downloader* m_contentMgr;
