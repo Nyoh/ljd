@@ -74,7 +74,7 @@ void Printer::printPrevNext(QString &result)
     result += "</ul></div>";
 }
 
-QString Printer::print(const Entry &entry)
+QString Printer::print(const Entry &entry, bool toFile)
 {
     QString result;
     result.reserve(entry.info.article.size() * 8);
@@ -91,6 +91,9 @@ QString Printer::print(const Entry &entry)
     result += "</ul></div>";
     printPrevNext(result);
 
+    if (!toFile)
+        return result;
+
     QFile file(getFileName(entry.info.storage, entry.info.name, entry.info.number));
     if (!file.open(QIODevice::WriteOnly))
     {
@@ -101,6 +104,8 @@ QString Printer::print(const Entry &entry)
     stream.setGenerateByteOrderMark(true);
     stream.setCodec("UTF-8");
     stream << result.toUtf8();
+
+    qDebug() << "Printed: " + entry.info.url;
 
     return result;
 }

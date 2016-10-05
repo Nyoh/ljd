@@ -33,12 +33,14 @@ private slots:
 
     void on_prevButton_clicked();
 
+    void on_printBook_clicked();
+
 private:
     Ui::MainWindow *ui;
     Downloader* m_contentMgr;
     const QString configFileName();
     size_t m_skipBeforeUpdate = 0;
-    void loadEntry(const QString& number, const QString& name);
+    void loadEntry(const QString& number, const QString& name, bool checked);
     void go(bool next);
 };
 

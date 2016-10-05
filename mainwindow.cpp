@@ -63,18 +63,19 @@ void MainWindow::showSelectedPage()
     ui->viewer->setHtml(printer.print(*entry));
 }
 
-void MainWindow::loadEntry(const QString& number, const QString& name)
+void MainWindow::loadEntry(const QString& number, const QString& name, bool checked)
 {
     Entry* entry = new Entry(*m_contentMgr, ui->storageText->toPlainText(), name, number, this);
 
     QListWidgetItem* item = new QListWidgetItem(number, ui->entriesList);
     item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-    item->setCheckState(Qt::Checked);
+    item->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
     item->setData(Qt::UserRole, QVariant::fromValue<Entry*>(entry));
     item->setSelected(true);
     ui->entriesList->insertItem(ui->entriesList->count(), item);
 
     connect(entry, SIGNAL(finished()), this, SLOT(showSelectedPage()), Qt::QueuedConnection);
+    connect(entry, &Entry::finished, [item, entry](){item->setText(entry->info.title);});
     entry->load();
 }
 
@@ -90,11 +91,12 @@ void MainWindow::on_loadPage_clicked()
         if (entry->info.name == name && entry->info.number == number)
         {
             item->setSelected(true);
+            showSelectedPage();
             return;
         }
     }
 
-    loadEntry(number, name);
+    loadEntry(number, name, true);
 }
 
 const QString MainWindow::configFileName()
@@ -119,7 +121,11 @@ void MainWindow::on_saveConfig_clicked()
     {
         QListWidgetItem* item = ui->entriesList->item(i);
         Entry* entry = item->data(Qt::UserRole).value<Entry*>();
-        entries.push_back(entry->info.number);
+        QJsonObject entryJson;
+        entryJson["number"] = entry->info.number;
+        entryJson["checked"] = (item->checkState() == Qt::Checked);
+
+        entries.push_back(entryJson);
     }
 
     QJsonObject root;
@@ -127,6 +133,8 @@ void MainWindow::on_saveConfig_clicked()
 
     QJsonDocument saveDoc(root);
     configFile.write(saveDoc.toJson());
+
+    qDebug() << "Config saved.";
 }
 
 void MainWindow::on_loadConfig_clicked()
@@ -151,7 +159,8 @@ void MainWindow::on_loadConfig_clicked()
     QJsonArray entries = root["entries"].toArray();
     for (const auto& entryJson : entries)
     {
-        loadEntry(entryJson.toString(), ui->nameText->toPlainText());
+        auto entry = entryJson.toObject();
+        loadEntry(entry["number"].toString(), ui->nameText->toPlainText(), entry["checked"].toBool());
         m_skipBeforeUpdate++;
     }
     m_skipBeforeUpdate--;
@@ -191,4 +200,38 @@ void MainWindow::on_nextButton_clicked()
 void MainWindow::on_prevButton_clicked()
 {
     go(false);
+}
+
+void MainWindow::on_printBook_clicked()
+{
+    QVector<Entry*> entries;
+    for (size_t i = 0; i != ui->entriesList->count(); i++)
+    {
+        QListWidgetItem* item = ui->entriesList->item(i);
+        if (item->checkState() != Qt::Checked)
+            continue;
+
+        entries.push_back(item->data(Qt::UserRole).value<Entry*>());
+    }
+
+    for (size_t i = 0; i != entries.size(); i++)
+    {
+        Entry* entry = entries[i];
+
+        Printer printer;
+        if (i != 0)
+        {
+            Entry* prev = entries[i - 1];
+            printer.prevTitle = prev->info.title;
+            printer.prevUrl = prev->info.number + ".html";
+        }
+        if (i + 1 != entries.size())
+        {
+            Entry* next = entries[i + 1];
+            printer.nextTitle = next->info.title;
+            printer.nextUrl = next->info.number + ".html";
+        }
+
+        printer.print(*entry, true);
+    }
 }

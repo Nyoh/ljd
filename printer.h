@@ -11,7 +11,7 @@ class Printer : public QObject
 public:
     explicit Printer(QObject *parent = 0);
 
-    QString print(const Entry& entry);
+    QString print(const Entry& entry, bool toFile = false);
 
     bool comments = true;
     bool filterCommentsByAuthor = true;

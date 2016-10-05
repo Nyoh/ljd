@@ -25,7 +25,6 @@ void Image::load()
         return;
     }
 
-    qDebug() << "Downloading image " + m_url;
     m_reply = m_netManager.get(QNetworkRequest(QUrl(m_url)));
     connect(m_reply, SIGNAL(finished()), this, SLOT(finishedDownload()));
 }
@@ -53,6 +52,8 @@ void Image::finishedDownload()
 
     localFile.write(m_reply->readAll());
     localFile.close();
+
+    qDebug() << "Downloaded image " + m_url;
     emit done(m_url, false);
 }
 
