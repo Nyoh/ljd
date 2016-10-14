@@ -13,9 +13,6 @@ public:
 
     QString print(const Entry& entry, bool toFile = false);
 
-    bool comments = true;
-    bool filterCommentsByAuthor = true;
-
     QString prevUrl;
     QString prevTitle;
     QString nextUrl;
@@ -24,7 +21,6 @@ public:
 
 private:
     void printComments(const QQueue<Entry::Comment> &comments, QString &result);
-    QQueue<Entry::Comment> filterComments(const QQueue<Entry::Comment> &comments, const QString& author);
     void printPrevNext(QString &result);
 };
 

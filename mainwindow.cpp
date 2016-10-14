@@ -286,5 +286,6 @@ void MainWindow::on_loadPicsButton_clicked()
             continue;
 
         item->data(Qt::UserRole).value<Entry*>()->loadPictures();
+
     }
 }

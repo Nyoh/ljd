@@ -29,6 +29,7 @@ public:
         QString userpicFile;
         QString id;
         QString parent;
+        bool visible = false;
 
         QQueue<Comment> children;
     };

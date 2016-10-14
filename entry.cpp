@@ -8,6 +8,22 @@
 
 #include "downloader.h"
 
+namespace
+{
+    void filterByName(QQueue<Entry::Comment>& comments, const QString& name)
+    {
+        QMutableListIterator<Entry::Comment> i(comments);
+        while (i.hasNext())
+        {
+            Entry::Comment& comment = i.next();
+            filterByName(comment.children, name);
+
+            if (comment.children.isEmpty() && comment.name != name)
+                i.remove();
+        }
+    }
+}
+
 Entry::Entry(Downloader &content, const QString &storage, const QString &name, const QString &number, QObject *parent)
     : QObject(parent)
     , info{storage, name, number}
@@ -56,10 +72,6 @@ void Entry::buildTree()
         }
 
         comment.userpicFile = QString(QCryptographicHash::hash(comment.userpic.toUtf8(), QCryptographicHash::Md5).toHex()) + ".jpeg";
-
-        m_images.push_back(std::make_tuple(info.storage + QDir::separator() + info.name + QDir::separator() + "avatars",
-                                           comment.userpic,
-                                           comment.userpicFile));
     }
 
     QHash<QString, QVector<Comment const*>> treeMap;
@@ -67,21 +79,37 @@ void Entry::buildTree()
     {
         treeMap[comment.parent].push_back(&comment);
     }
-    QHash<QString, int> used;
-    QQueue<QPair<QString, QQueue<Comment>*>> queue;
-    int tasksQueued = 1;
-    queue.push_back(QPair<QString, QQueue<Comment>*>("-1", &info.comments));
 
+    {
+        QQueue<QPair<QString, QQueue<Comment>*>> queue;
+        int tasksQueued = 1;
+        queue.push_back(QPair<QString, QQueue<Comment>*>("-1", &info.comments));
+
+        while (!queue.isEmpty())
+        {
+            const auto& pair = queue.front();
+            const QVector<Comment const*>& chilrenList = treeMap[pair.first];
+            for (const auto& child : chilrenList)
+            {
+                pair.second->push_back(*child);
+                queue.push_back(QPair<QString, QQueue<Comment>*>(child->id, &pair.second->back().children));
+                tasksQueued++;
+            }
+            queue.pop_front();
+        }
+    }
+
+    filterByName(info.comments, info.name);
+
+    QQueue<QQueue<Comment> const*> queue;
+    queue.push_back(&info.comments);
     while (!queue.isEmpty())
     {
-        const auto& pair = queue.front();
-        const QVector<Comment const*>& chilrenList = treeMap[pair.first];
+        const auto& chilrenList = *queue.front();
         for (const auto& child : chilrenList)
         {
-            pair.second->push_back(*child);
-            queue.push_back(QPair<QString, QQueue<Comment>*>(child->id, &pair.second->back().children));
-            used[child->id] = 1;
-            tasksQueued++;
+            m_images.push_back(std::make_tuple(info.storage + QDir::separator() + info.name + QDir::separator() + "avatars", child.userpic, child.userpicFile));
+            queue.push_back(&child.children);
         }
         queue.pop_front();
     }

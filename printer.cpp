@@ -11,36 +11,10 @@ namespace
     {
         return storage + QDir::separator() + name + QDir::separator() + number + ".html";
     }
-
-    void filterByName(QQueue<Entry::Comment>& comments, const QString& name)
-    {
-        QMutableListIterator<Entry::Comment> i(comments);
-        while (i.hasNext())
-        {
-            Entry::Comment& comment = i.next();
-            filterByName(comment.children, name);
-
-            if (comment.children.isEmpty() && comment.name != name)
-                i.remove();
-        }
-    }
 }
 
 Printer::Printer(QObject *parent) : QObject(parent)
 {
-}
-
-QQueue<Entry::Comment> Printer::filterComments(const QQueue<Entry::Comment>& comments, const QString &author)
-{
-    if (!this->comments)
-        return QQueue<Entry::Comment>();
-
-    if (!filterCommentsByAuthor)
-        return comments;
-
-    QQueue<Entry::Comment> result = comments;
-    filterByName(result, author);
-    return result;
 }
 
 void Printer::printComments(const QQueue<Entry::Comment>& comments, QString &result)
@@ -87,7 +61,7 @@ QString Printer::print(const Entry &entry, bool toFile)
     printPrevNext(result);
 
     result += "<br><link rel=\"stylesheet\" href=\"style.css\"><div><ul class=\"tree\">";
-    printComments(filterComments(entry.info.comments, entry.info.name), result);
+    printComments(entry.info.comments, result);
     result += "</ul></div>";
     printPrevNext(result);
 
