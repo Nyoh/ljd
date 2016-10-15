@@ -45,6 +45,7 @@ public:
         QString prev;
         QString next;
         QString url;
+        QString date;
         QQueue<Comment> comments;
     } info;
 

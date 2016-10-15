@@ -48,14 +48,16 @@ void Printer::printPrevNext(QString &result)
     result += "</ul></div>";
 }
 
-QString Printer::print(const Entry &entry, bool toFile)
+QString Printer::print(const Entry &entry, const QString& firstLine, bool toFile)
 {
     QString result;
     result.reserve(entry.info.article.size() * 8);
 
     result += "<div style=\"max-width: 1100px;\">";
     printPrevNext(result);
-    result += "<h2>" + entry.info.url + "</h2>";
+    result += "<h3>" + firstLine + "</h3>";
+    result += "<h3>Url: " + entry.info.url + "</h3>";
+    result += "<h3>Date: " + entry.info.date + "</h3>";
     result += entry.info.article;
     result += "</div>";
     printPrevNext(result);

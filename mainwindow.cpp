@@ -61,7 +61,9 @@ void MainWindow::showSelectedPage()
     }
 
     ui->numberText->setPlainText(entry->info.number);
-    ui->viewer->setHtml(printer.print(*entry));
+
+    const QString& firstLine = "Number: " + QString::number(index + 1) + "/" + QString::number(ui->entriesList->count());
+    ui->viewer->setHtml(printer.print(*entry, firstLine));
 }
 
 void MainWindow::loadEntry(const QString& number, const QString& name, bool checked)
@@ -251,7 +253,8 @@ void MainWindow::on_printBook_clicked()
         }
         printer.contentUrl = "!content.html";
 
-        printer.print(*entry, true);
+        const QString& firstLine = "Number: " + QString::number(i + 1) + "/" + QString::number(entries.size());
+        printer.print(*entry, firstLine, true);
     }
 
 
@@ -265,7 +268,7 @@ void MainWindow::on_printBook_clicked()
     QString result;
     for (const auto& entry : entries)
     {
-        result += "<div><a href=" + entry->info.number + ".html>" + entry->info.title + "</a></div>";
+        result += "<div><a href=" + entry->info.number + ".html>" + entry->info.date + "   " + entry->info.title + "</a></div><br>";
     }
 
     QTextStream stream(&file);
@@ -286,6 +289,5 @@ void MainWindow::on_loadPicsButton_clicked()
             continue;
 
         item->data(Qt::UserRole).value<Entry*>()->loadPictures();
-
     }
 }

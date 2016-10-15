@@ -1,5 +1,6 @@
 #include "entry.h"
 
+#include <QDebug>
 #include <QDir>
 #include <QJsonObject>
 #include <QQueue>
@@ -66,6 +67,9 @@ void Entry::buildTree()
         comment.id = QString::number(rawComment["dtalkid"].toInt());
         comment.parent = QString::number(rawComment["parent"].toInt(-1));
 
+        if (info.date.isEmpty())
+            info.date = rawComment["ctime"].toString();
+
         if (comment.userpic.isEmpty())
         {
             continue;
@@ -119,13 +123,18 @@ void Entry::processArticle()
 {
     info.article = m_page->article;
 
-    static const QString imageTag("<img src=\"");
+    static const QString imageTag("<img ");
+    static const QString srcTag(" src=\"");
     auto start = info.article.indexOf(imageTag);
     while (start != -1)
     {
-        start += imageTag.size();
-        auto end = info.article.indexOf("\"", start);
-        const auto& imageUrl = info.article.mid(start, end - start);
+        auto srcStart = info.article.indexOf(srcTag, start);
+        if (srcStart == -1)
+            break;
+        srcStart += srcTag.size();
+
+        auto end = info.article.indexOf("\"", srcStart);
+        const auto& imageUrl = info.article.mid(srcStart, end - srcStart);
         const auto& imageFileName = QString(QCryptographicHash::hash(imageUrl.toUtf8(), QCryptographicHash::Md5).toHex()) + ".jpeg";
         const auto& imageFilePath = QString("images") + QDir::separator() + imageFileName;
 
@@ -133,7 +142,7 @@ void Entry::processArticle()
                                            imageUrl,
                                            imageFileName));
 
-        info.article.replace(start, end - start, imageFilePath);
+        info.article.replace(srcStart, end - srcStart, imageFilePath);
         start = info.article.indexOf(imageTag, end);
     }
 }
@@ -153,5 +162,6 @@ void Entry::pageFinished()
     info.title = info.title.trimmed();
     info.url = m_page->url;
 
+    qDebug() << "Page loaded: " << info.date << "  " << info.url;
     emit finished();
 }

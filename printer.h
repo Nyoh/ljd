@@ -11,7 +11,7 @@ class Printer : public QObject
 public:
     explicit Printer(QObject *parent = 0);
 
-    QString print(const Entry& entry, bool toFile = false);
+    QString print(const Entry& entry, const QString& firstLine, bool toFile = false);
 
     QString prevUrl;
     QString prevTitle;
