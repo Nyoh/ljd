@@ -14,7 +14,10 @@ void Downloader::get(const QString &storage, const QString &url, const QString &
     QSharedPointer<Image>& image = m_images[key];
     if (!image)
     {
-        image = QSharedPointer<Image>::create(*m_manager, storage, filename, url);
+        QString fixedUrl = url;
+        fixedUrl.replace("https://", "http://");
+
+        image = QSharedPointer<Image>::create(*m_manager, storage, filename, fixedUrl);
 //        connect(result.data(), SIGNAL(done(QString, bool)), this, SLOT(imageDownloaded(QString, bool)));
         image->load();
     }

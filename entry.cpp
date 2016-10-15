@@ -103,7 +103,8 @@ void Entry::buildTree()
         }
     }
 
-    filterByName(info.comments, info.name);
+    QString author = info.name;
+    filterByName(info.comments, author.replace('-', '_'));
 
     QQueue<QQueue<Comment> const*> queue;
     queue.push_back(&info.comments);
