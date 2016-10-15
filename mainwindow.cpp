@@ -64,6 +64,12 @@ void MainWindow::showSelectedPage()
 
     const QString& firstLine = "Number: " + QString::number(index + 1) + "/" + QString::number(ui->entriesList->count());
     ui->viewer->setHtml(printer.print(*entry, firstLine));
+
+    if (ui->cbAuto->isChecked())
+    {
+        on_saveConfig_clicked();
+        on_nextButton_clicked();
+    }
 }
 
 void MainWindow::loadEntry(const QString& number, const QString& name, bool checked)

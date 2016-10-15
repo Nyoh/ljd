@@ -100,7 +100,7 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,1,0">
+         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,1,0">
           <item>
            <widget class="QPlainTextEdit" name="storageText">
             <property name="sizePolicy">
@@ -117,6 +117,13 @@
             </property>
             <property name="plainText">
              <string>C:/Users/iivan/Dropbox/ljd</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="cbAuto">
+            <property name="text">
+             <string>Auto continue with next page</string>
             </property>
            </widget>
           </item>
