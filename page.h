@@ -3,7 +3,7 @@
 
 #include <atomic>
 
-#include <QJsonArray>
+#include <QJsonObject>
 #include <QObject>
 
 const static QString LJ_TAG = QString(".livejournal.com/");
@@ -17,7 +17,7 @@ class Page : public QObject
 public:
     QString url;
     QString article;
-    QJsonArray rawComments;
+    QJsonObject rawComments;
     QString prev;
     QString next;
 
@@ -42,9 +42,11 @@ private:
 
     void save();
 
+    QString commentsUrl() const;
     const QString m_storage;
     const QString m_name;
     const QString m_number;
+    unsigned m_commentPage = 1;
 
     QNetworkReply* m_articleReply = nullptr;
     QNetworkReply* m_commentsReply = nullptr;

@@ -23,11 +23,6 @@ namespace
         return storage + QDir::separator() + name + number + ".json";
     }
 
-    QString commentsUrl(const QString& name, const QString& number)
-    {
-        return "http://" + name + ".livejournal.com/" + name + "/__rpc_get_thread?journal=" + name + "&itemid=" + number + "&flat=&skip=&media=&expand_all=1";
-    }
-
     void waitABit()
     {
         static std::random_device rd;
@@ -64,7 +59,7 @@ void Page::load()
         query(m_articleReply, url);
         connect(m_articleReply, SIGNAL(finished()), this, SLOT(articleFromNet()));
 
-        query(m_commentsReply, commentsUrl(m_name, m_number));
+        query(m_commentsReply, commentsUrl());
         connect(m_commentsReply, SIGNAL(finished()), this, SLOT(commentsFromNet()));
     }
 }
@@ -92,7 +87,7 @@ bool Page::loadFromStorage()
 
         QJsonParseError error;
         QJsonObject root = QJsonDocument::fromJson(partsFile.readAll(), &error).object();
-        rawComments = root["raw_comments"].toArray();
+        rawComments = root["raw_comments"].toObject();
         if (error.error != QJsonParseError::NoError)
         {
             qCritical() << "Failed to parse the file " + partsFileName(m_storage, m_name, m_number);
@@ -151,17 +146,31 @@ void Page::commentsFromNet()
     try
     {
         if(m_commentsReply->error() != QNetworkReply::NoError)
-            throw "Failed to download " + commentsUrl(m_name, m_number) + ". " + m_commentsReply->errorString();
+            throw "Failed to download " + commentsUrl() + ". " + m_commentsReply->errorString();
 
-        qDebug() << "Downloaded: " + commentsUrl(m_name, m_number);
+        qDebug() << "Downloaded: " + commentsUrl();
 
         const QString reply(m_commentsReply->readAll());
         const QJsonDocument& pageJson = QJsonDocument::fromJson(reply.toUtf8());
         const QJsonObject& partsObject = pageJson.object();
-        rawComments = partsObject["comments"].toArray();
+        QJsonArray rawCommentsArray = partsObject["comments"].toArray();
+        for (const auto& commentJson : rawCommentsArray)
+        {
+            QJsonObject rawComment = commentJson.toObject();
+            const QString commentNum = QString::number(rawComment["dtalkid"].toInt());
+            if (rawComments.find(commentNum) == rawComments.end())
+                rawComments[commentNum] = rawComment;
+            else
+            {
+                commentsDone = true;
+                save();
+                return;
+            }
+        }
 
-        commentsDone = true;
-        save();
+        m_commentPage++;
+        query(m_commentsReply, commentsUrl());
+        connect(m_commentsReply, SIGNAL(finished()), this, SLOT(commentsFromNet()));
     }
     catch (const QString& err)
     {
@@ -272,3 +281,10 @@ void Page::parse(const QString& page)
     parsePrev(page);
     parseNext(page);
 }
+
+QString Page::commentsUrl() const
+{
+    return "http://" + m_name + ".livejournal.com/" + m_name + "/__rpc_get_thread?journal=" + m_name +
+            "&itemid=" + m_number + "&flat=&skip=&media=&expand_all=1&page=" + QString::number(m_commentPage);
+}
+
