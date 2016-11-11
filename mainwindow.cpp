@@ -185,6 +185,7 @@ void MainWindow::on_loadConfig_clicked()
     QJsonArray entries = root["entries"].toArray();
     for (const auto& entryJson : entries)
     {
+        QApplication::processEvents();
         auto entry = entryJson.toObject();
         loadEntry(entry["number"].toString(), ui->nameText->toPlainText(), entry["checked"].toBool());
         m_skipBeforeUpdate++;

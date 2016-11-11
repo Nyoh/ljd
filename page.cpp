@@ -27,7 +27,7 @@ namespace
     {
         static std::random_device rd;
         static std::mt19937 gen(rd());
-        static std::uniform_int_distribution<> dis(1000, 2000);
+        static std::uniform_int_distribution<> dis(100, 200);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(dis(gen)));
     }
@@ -47,7 +47,7 @@ Page::Page(QNetworkAccessManager& netManager, const QString& storage, const QStr
 
 void Page::query(QNetworkReply *&reply, const QString& url)
 {
-    //waitABit();
+    waitABit();
     qDebug() << "Downloading " + url;
     reply = m_netManager.get(QNetworkRequest(QUrl(url)));
 }
@@ -57,10 +57,10 @@ void Page::load()
     if (!loadFromStorage())
     {
         query(m_articleReply, url);
-        connect(m_articleReply, SIGNAL(finished()), this, SLOT(articleFromNet()));
+        connect(m_articleReply, SIGNAL(finished()), this, SLOT(articleFromNet()), Qt::QueuedConnection);
 
         query(m_commentsReply, commentsUrl());
-        connect(m_commentsReply, SIGNAL(finished()), this, SLOT(commentsFromNet()));
+        connect(m_commentsReply, SIGNAL(finished()), this, SLOT(commentsFromNet()), Qt::QueuedConnection);
     }
 }
 
