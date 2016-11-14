@@ -168,9 +168,12 @@ void Page::commentsFromNet()
             }
         }
 
-        m_commentPage++;
-        query(m_commentsReply, commentsUrl());
-        connect(m_commentsReply, SIGNAL(finished()), this, SLOT(commentsFromNet()));
+        if (!rawCommentsArray.isEmpty())
+        {
+            m_commentPage++;
+            query(m_commentsReply, commentsUrl());
+            connect(m_commentsReply, SIGNAL(finished()), this, SLOT(commentsFromNet()));
+        }
     }
     catch (const QString& err)
     {

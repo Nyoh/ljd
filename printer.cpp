@@ -27,7 +27,7 @@ void Printer::printComments(const QQueue<Entry::Comment>& comments, QString &res
         result +=  "<b>" + comment.name + "</b> (" + comment.date + "): ";
         result += "<div>";
         result += comment.text;
-        result += "</div></div><ul>";
+        result += "</div></div><br><ul>";
 
         printComments(comment.children, result);
 
