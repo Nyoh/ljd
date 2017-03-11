@@ -49,7 +49,10 @@ void Page::query(QNetworkReply *&reply, const QString& url)
 {
     waitABit();
     qDebug() << "Downloading " + url;
-    reply = m_netManager.get(QNetworkRequest(QUrl(url)));
+    QNetworkRequest request;
+    request.setUrl(QUrl(url));
+    request.setRawHeader("User-Agent" , "Mozilla/5.0 (Android 5.1; Mobile; rv:52.0) Gecko/52.0 Firefox/52.0");
+    reply = m_netManager.get(request);
 }
 
 void Page::load()
