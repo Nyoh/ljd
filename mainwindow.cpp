@@ -94,19 +94,7 @@ void MainWindow::on_loadPage_clicked()
     const QString& name = ui->nameText->toPlainText();
     const QString& number = ui->numberText->toPlainText();
 
-    for (size_t i = 0; i != ui->entriesList->count(); i++)
-    {
-        QListWidgetItem* item = ui->entriesList->item(i);
-        Entry* entry = item->data(Qt::UserRole).value<Entry*>();
-        if (entry->info.name == name && entry->info.number == number)
-        {
-            item->setSelected(true);
-            showSelectedPage();
-            return;
-        }
-    }
-
-    loadEntry(number, name, true);
+    loadIfNew(number, name);
 }
 
 const QString MainWindow::configFileName()
@@ -297,4 +285,27 @@ void MainWindow::on_loadPicsButton_clicked()
 
         item->data(Qt::UserRole).value<Entry*>()->loadPictures();
     }
+}
+
+void MainWindow::on_loadCalendar_clicked()
+{
+    m_calendar.reset(new Calendar(*(m_contentMgr->getNetwork()), ui->nameText->toPlainText()));
+    connect(m_calendar.get(), SIGNAL(pageFound(QString, QString)), this, SLOT(loadIfNew(QString, QString)), Qt::QueuedConnection);
+}
+
+void MainWindow::loadIfNew(const QString &number, const QString &name)
+{
+    for (size_t i = 0; i != ui->entriesList->count(); i++)
+    {
+        QListWidgetItem* item = ui->entriesList->item(i);
+        Entry* entry = item->data(Qt::UserRole).value<Entry*>();
+        if (entry->info.name == name && entry->info.number == number)
+        {
+            item->setSelected(true);
+            showSelectedPage();
+            return;
+        }
+    }
+
+    loadEntry(number, name, true);
 }

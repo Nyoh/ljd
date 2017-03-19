@@ -4,6 +4,9 @@
 #include <QMainWindow>
 
 #include "entry.h"
+#include "calendar.h"
+
+#include <memory>
 
 class Downloader;
 
@@ -37,13 +40,18 @@ private slots:
 
     void on_loadPicsButton_clicked();
 
+    void on_loadCalendar_clicked();
+    void loadIfNew(const QString& number, const QString& name);
+
 private:
     Ui::MainWindow *ui;
     Downloader* m_contentMgr;
     const QString configFileName();
     size_t m_skipBeforeUpdate = 0;
-    void loadEntry(const QString& number, const QString& name, bool checked);
+    std::unique_ptr<Calendar> m_calendar;
+
     void go(bool next);
+    void loadEntry(const QString& number, const QString& name, bool checked);
 };
 
 #endif // MAINWINDOW_H
